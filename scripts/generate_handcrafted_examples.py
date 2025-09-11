@@ -4,9 +4,10 @@ import pysta
 import torch
 import numpy as np
 import pickle
-save = False
 pysta.reload()
 from pysta import basedir
+
+save = True
 
 #%% examples of each task
 
@@ -24,7 +25,7 @@ loc0 = env.loc.clone()
 goal0 = env.goal.clone()
 walls0 = env.walls.clone()
 rews0 = env.rews.clone()
-env.plot(filename = f"{basedir}/figures/tasks/moving_goal.png", values = False)
+env.plot(filename = None, values = False)
 example_task_data["moving_goal"] = {
     "walls": env.walls[0],
     "goal": env.goal[0].clone(),
@@ -35,7 +36,7 @@ example_task_data["moving_goal"] = {
 
 env.step(torch.multinomial(env.optimal_actions(), 1)[:, 0])
 
-env.plot(filename = f"{basedir}/figures/tasks/moving_goal2.png", values = False)
+env.plot(filename = None, values = False)
 example_task_data["moving_goal"]["optimal_actions_t2"] = env.optimal_actions()[0, :] # everything else is the same
 example_task_data["moving_goal"]["loc_t2"] = env.loc[0] # everything else is the same
 
@@ -57,8 +58,8 @@ env.rew_landscape = True
 [env.reset() for _ in range(1)]
 rew_landscape = env.rews.clone()
 env.loc = loc0
-env.plot(filename = f"{basedir}/figures/tasks/rew_landscape.png", values = False)
-env.plot(filename = f"{basedir}/figures/tasks/rew_landscape_val.png", values = True)
+env.plot(filename = None, values = False)
+env.plot(filename = None, values = True)
 
 example_task_data["rew_landscape"] = {
     "walls": env.walls[0],
@@ -73,7 +74,7 @@ for _ in range(env.max_steps):
 example_task_data["rew_landscape"]["all_locs"] = all_locs
 
 if save:
-    pickle.dump(example_task_data, open("{basedir}/data/tasks/example_task_data.pickle", "wb"))
+    pickle.dump(example_task_data, open(f"{basedir}/data/examples/example_task_data.pickle", "wb"))
 
 
 
@@ -107,10 +108,11 @@ for ienv, env in enumerate(envs):
             env.rews[...] = rews0[:, :1, :]
             env.compute_value_function()
             test_goal = goal0[0,0].item()
+            rmin, rmax = env.rews.min(), env.rews.max()
         elif ienv == 1:
             test_goal = 1
-            env.rews[...] = -env.action_cost
-            env.rews[..., test_goal] += 1+env.action_cost
+            env.rews[...] = rmin
+            env.rews[..., test_goal] += rmax
             env.compute_value_function()
         elif ienv == 2:
             env.goal[...] = goal0[...].clone()
@@ -125,17 +127,13 @@ for ienv, env in enumerate(envs):
             [agent.forward() for _ in range(200)] # learn value function for some episodes
         else:
             agent.step(env.observation()) # compute response to observation
-
-
-        fname = f"{basedir}/figures/{agent.label}/{env_labels[ienv]}.png"
-        print(fname)
         
         if agent.label == "sta":
             kwargs = {"walls": walls0[0],
                       "vmap": agent.r[0],
                       "loc": loc0,
                       "goal": test_goal}
-            pysta.plot_utils.plot_perspective_attractor(filename = fname, **kwargs, cmap = "YlOrRd")
+            pysta.plot_utils.plot_perspective_attractor(filename = None, **kwargs, cmap = "YlOrRd", show = True)
             
             
         else:
@@ -144,11 +142,13 @@ for ienv, env in enumerate(envs):
                     "loc": loc0,
                     "goal": test_goal}
 
-            pysta.plot_utils.plot_flat_frame(filename = fname, **kwargs, cmap = "YlOrRd", vmin = -0.5, vmax = 1.0)
+            pysta.plot_utils.plot_flat_frame(filename = None, **kwargs, cmap = "YlOrRd", vmin = -0.5, vmax = 1.0, show = True)
             
         example_rep_data[env_labels[ienv]][agent.label] = kwargs
 
 if save:
-    pickle.dump(example_rep_data, open("{basedir}/data/tasks/example_rep_data.pickle", "wb"))
+    pickle.dump(example_rep_data, open(f"{basedir}/data/examples/example_rep_data.pickle", "wb"))
 
 
+
+# %%

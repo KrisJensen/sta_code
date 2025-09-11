@@ -13,6 +13,7 @@ pysta.reload()
 from pysta.utils import compute_model_support
 from pysta import basedir
 from scipy.ndimage import gaussian_filter1d
+ext = ".pdf"
 
 #%% generate little schematic of relative vs absolute
 
@@ -40,9 +41,6 @@ for i in range(2):
 # %% plot some example representations
 
 from pysta.utils import schematic_walls as walls
-# rnn, _, _ = pysta.utils.load_model(model_names[0], create_sta = False)
-# env = rnn.env
-# walls = env.walls[0].detach().numpy()
 num_locs = walls.shape[0]
 L = int(np.sqrt(num_locs))
 num_mod = 4

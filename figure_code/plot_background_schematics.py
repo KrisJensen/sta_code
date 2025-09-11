@@ -24,6 +24,8 @@ N, L = walls.shape[0], int(np.sqrt(walls.shape[0]))
 
 # %% now plot example environment with and without firing rates
 
+sequence_colors = [plt.get_cmap("viridis")(iind / 5 + 0.35) for iind in range(4)][::-1]
+
 locs = [(0,1), (1,1), (1,0), (2,0)]
 loc_inds = np.array([pysta.maze_utils.loc_to_index(loc, L = L) for loc in locs])
 dists_to_locs = dists[loc_inds, :]
@@ -80,7 +82,7 @@ for iloc, loc in enumerate(cell_locs[1:]):
     style = styleA if ex else styleB
     kw = dict(arrowstyle=style, color=plt.get_cmap("coolwarm")(1-np.abs(dtheta)/np.pi))
     constyle = "arc3,rad="+str(-np.sign(dtheta)*0.7*(1-np.abs(dtheta/np.pi)))
-    print(loc, dtheta, constyle)
+    #print(loc, dtheta, constyle)
     a = patches.FancyArrowPatch(0.91*loc0, 0.91*loc,
                              connectionstyle=constyle, **kw, lw = 1.0 if ex else 1.7)
 

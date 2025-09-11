@@ -9,6 +9,8 @@ pysta.reload()
 from pysta import basedir
 from pysta.maze_utils import loc_to_index
 from pysta.plot_utils import plot_perspective_attractor
+ext = ".pdf"
+basefigdir = f"{basedir}/figures/changing_maze_rnn/"
 
 cols = {"stim": (0.35, 0.65, 0.2),
           "strong_ex": plt.get_cmap("coolwarm")(0.95), 

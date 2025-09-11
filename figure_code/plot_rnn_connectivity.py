@@ -16,14 +16,12 @@ from pysta import basedir
 #%% replace some stuff
 
 ext = ".pdf"
-
 basefigdir = f"{basedir}/figures/rnn_connectivity/"
 
 
 #%% set some parameters
 ext = ".pdf"
 seeds = [21,22,23,24,25]
-seeds = [22]
 
 basenames = {"WM": "MazeEnv_L4_max6_landscape_changing-rew_dynamic-rew_constant-maze_allo_planrew_plan5-6-7_VanillaRNN_iter10_tau5.0_opt_N800_linout_model",
             "STA":
@@ -55,7 +53,9 @@ def get_model_and_subs(model, seed, subspace_type):
         Csubs = construct_true_Csubs(Csubs, rnn)
     
     return connectivity_data, Csubs
-    
+
+#%%
+
 models = ["WM", "STA", "STA_true", "relrew"]
 
 for imodel, model in enumerate(models):
@@ -71,10 +71,6 @@ for imodel, model in enumerate(models):
         connectivity_data, Csubs = get_model_and_subs(model, seeds[0], subspace_type)
         Csub_flat = np.concatenate(Csubs, axis = 0)
         
-        # Wrec = connectivity_data["Wrec"]
-        # Win = connectivity_data["Win"]
-        # Wout = connectivity_data["Wout"]
-        # adj = connectivity_data["adjacency"]
         rnn = connectivity_data["rnn"]
         Wrec, Win, Wout = [W.detach().numpy() for W in [rnn.Wrec, rnn.Win, rnn.Wout]]
         if len(Wrec.shape) == 3: # the handcrafted STA has a whole set of recurrent weights across a batch
@@ -149,6 +145,7 @@ for imodel, model in enumerate(models):
             plt.yticks([])
             plt.savefig(basefigdir + model+"/"+[f"W12{substr}", "A0", "A1", "A2", "A3"][imat] + ext, bbox_inches = "tight", transparent = True)
             plt.show()
+            plt.close()
 
         # %% now plot similarity of different connectivity matrices to different powers of the adjacency matrix
 
@@ -179,7 +176,6 @@ for imodel, model in enumerate(models):
                         mod1 = mod0 + delta # for each paired subspace
                         if min(mod0, mod1) >= 0 and max(mod0, mod1) < Csubs_m.shape[0]: # only consider pairs that are in range
                             if not ((min(mod0, mod1) == 0 and max(mod0, mod1) == 1) or (mod0 == 0 and mod1 == 0)): # don't consider immediate connections
-                                #print(delta, mod0, mod1)
                                 # the effective connectivity to our list
                                 Weffs[-1].append(Csubs_m[mod1] @ Wrec_m @ Csubs_m[mod0].T)
                     
@@ -198,7 +194,6 @@ for imodel, model in enumerate(models):
                 # compute std
                 scales[idelta] = Weffs.std((-1,-2)).mean() # average across pairs of subspaces and sign
                 
-                #print(f"delta={delta}, {scales[idelta]}:\n{np.round(scores[idelta, :], 3)}")
             all_scales.append(scales)
             all_scores.append(scores)
             all_scores_abs.append(abs_scores)
@@ -221,8 +216,10 @@ for imodel, model in enumerate(models):
                     same.append(sim)
                 else:
                     diff.append(sim)
-        print(np.mean(same), np.std(same))
-        print(np.mean(diff), np.std(diff))
+                    
+        if (model == "WM") and (subspace_type == "planning"):
+            print("Within maze correlation:", np.mean(same), np.std(same))
+            print("Across maze correlation:", np.mean(diff), np.std(diff))
 
         #%% plot the average weight matrix for different distances
 
@@ -235,6 +232,7 @@ for imodel, model in enumerate(models):
             plt.savefig(f"{basefigdir}{model}/avg_connectivity_{abs_deltas[imat]}{substr}{ext}", bbox_inches = "tight", transparent = True)
             plt.title(f"{abs_deltas[imat]}")
             plt.show()
+            plt.close()
 
 
         vmin, vmax = np.quantile(Wavgs, [0.10, 0.95])
@@ -247,6 +245,7 @@ for imodel, model in enumerate(models):
                 plt.savefig(f"{basefigdir}{model}/avg_connectivity_{abs_deltas[imat]}-{isign}{substr}{ext}", bbox_inches = "tight", transparent = True)
                 plt.title(f"{abs_deltas[imat]}-{isign}")
                 plt.show()
+                plt.close()
 
 
         #%% now plot the similarity plots
@@ -276,8 +275,7 @@ for imodel, model in enumerate(models):
             plt.xticks(plot_deltas)
             plt.savefig(f"{basefigdir}{model}/similarity{substr}{isign}{ext}", bbox_inches = "tight", transparent = True)
             plt.show()
-
-            print(np.round(np.array(plot_scores).mean(0), 2))
+            plt.close()
 
 
         # plot the parameter scale
@@ -293,8 +291,7 @@ for imodel, model in enumerate(models):
         plt.xticks(abs_deltas)
         plt.savefig(f"{basefigdir}{model}/scale{substr}{ext}", bbox_inches = "tight", transparent = True)
         plt.show()
-
-        print(np.round(scores, 2))
+        plt.close()
 
 
         #%% plot average connectivity as a projection
@@ -329,7 +326,7 @@ for imodel, model in enumerate(["WM", "relrew"]):
             connectivity_data_m, Csubs_m = get_model_and_subs(model, seed, subspace_type)
             new_Cs.append(Csubs_m)
         
-        overlaps.append((new_Cs[0][0:, ...] * new_Cs[1][0:-1, ...]).sum(-1))
+        overlaps.append((new_Cs[0][0:-1, ...] * new_Cs[1][0:, ...]).sum(-1))
     all_overlaps.append(overlaps)  
 
 all_overlaps = np.array(all_overlaps)
@@ -343,13 +340,13 @@ plt.figure(figsize = (1.5,1.8))
 plt.bar(xs, ms, yerr = ss)
 for idata, datapoints in enumerate(data.T):
     plt.scatter(jitters+xs[idata], datapoints, marker = ".", color = "k", alpha = 0.5)
-plt.xticks(xs, xticks)#, rotation = 45, ha = "right")
 plt.ylabel("overlap")
-#plt.yticks([0,1,2])
 plt.ylim(0, 1)
 plt.xticks(xs, ["WM", "continual"])#, rotation = 45, ha = "right")
 plt.gca().spines[['right', 'top']].set_visible(False)
 plt.savefig(f"{basedir}/figures/rnn_connectivity/subspace_overlap{ext}", bbox_inches = "tight", transparent = True)
 plt.show()
 plt.close()
+
+#%%
 

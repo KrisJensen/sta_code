@@ -94,8 +94,8 @@ cols[1] = np.zeros(3)+0.6
 
 true_cors, false_cors, false_adj_cors = [changing_maze_results[key] for key in ["true_cors", "false_cors", "false_adj_cors"]]
 
-print(len(true_cors), len(false_cors), len(false_adj_cors))
-print(np.mean(true_cors), np.mean(false_cors), np.mean(false_adj_cors))
+# print(len(true_cors), len(false_cors), len(false_adj_cors))
+# print(np.mean(true_cors), np.mean(false_cors), np.mean(false_adj_cors))
 
 mtrue, strue = np.mean(true_cors), np.std(true_cors)
 bins_true = np.linspace(np.amin(true_cors)-1e-5, np.amax(true_cors)+1e-5, 6)
@@ -129,7 +129,7 @@ for iref, plot_dirs in enumerate([datadirs, datadirs_ref]):
     for maze_results in all_maze_results:
         all_true.append(np.mean(maze_results["true_cors"]))
         all_false.append(np.mean(maze_results["false_cors"]))
-        print(pearsonr([p[1] for p in maze_results["perfs"]], maze_results["true_cors"]))
+        #print(pearsonr([p[1] for p in maze_results["perfs"]], maze_results["true_cors"]))
         
     data = np.array([all_true, all_false]).T # (2, num_mazes, num_pairs)
 
@@ -157,7 +157,6 @@ for iref, plot_dirs in enumerate([datadirs, datadirs_ref]):
 
 cols = [np.array(plt.get_cmap("tab10")(0)) for _ in range(2)]
 cols[1] = np.zeros(3)+0.6
-print(cols)
 
 sames, diffs = [], []
 

@@ -131,7 +131,6 @@ def plot_flat_frame(walls, filename = None, goal = None, loc = None, optimal_act
                 ax.arrow(base[0], base[1], dloc[0]*0.7, dloc[1]*0.7, color = opt_col, width = 0.1, head_width = 0.35, head_length = 0.3, length_includes_head = True, zorder = 50)
 
     # parameters and save/show
-    #print(xlabel)
     ax.set_xlabel(xlabel)
     ax.set_xlim(-0.5, L-0.5)
     ax.set_ylim(-0.5, L-0.5)
@@ -196,7 +195,8 @@ def plot_perspective_attractor(walls, vmap, state_actions = False, maze_col = No
         vmin = vmap.min()
     if vmax is None:
         vmax = vmap.max()
-    vmap = (vmap - vmin)/(vmax - vmin)
+
+    vmap = (vmap - vmin)/(vmax - vmin + 1e-20)
     
     Nmod, N = vmap.shape[:2]
     L = int(np.sqrt(N))
@@ -370,13 +370,15 @@ def plot_perspective_attractor(walls, vmap, state_actions = False, maze_col = No
     ax.set_ylim(-0.1, L-1+0.1)
 
     if filename is not None:
-        #print(bbox_inches)
         plt.savefig(filename, bbox_inches = bbox_inches, transparent = transparent, dpi = dpi)
-        #plt.savefig(filename, bbox_inches = mpl.transforms.Bbox([[2,1.45], [5.3,2.54]]), transparent = False, dpi = dpi)
 
     if show:
         plt.show()
-        
+    
+    if show or (filename is not None):
+        plt.close()
+        return
+    
     return ax
                     
 
@@ -462,7 +464,6 @@ def plot_prediction_result(prediction_result, neural_times, loc_times, error = N
     if ts_train is not None:
         itrain_x, itrain_y = np.where(neural_times == ts_train[0])[0][0], np.where(loc_times == ts_train[1])[0][0]
         ytrain = prediction_result[itrain_x, itrain_y]
-        print(itrain_x, itrain_y, ytrain)
         plt.scatter([itrain_y], [ytrain], edgecolors = cols[itrain_x], facecolors = 'none', marker = "o", s = 120, lw = 2.5, zorder = 100)
     
     xlabel = "predict location at this time" if xlabel is None else xlabel

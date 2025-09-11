@@ -44,7 +44,6 @@ for iloss, loss_label in enumerate(loss_labels):
 
         data = perfs[:, ind, :3][..., order] # performance of the agents
         baseline = perfs[:, ind, -1].mean(0) # performance of random baseline
-        print(env, data, baseline)
         
         xs, mean, std = np.arange(data.shape[1]), np.mean(data, axis = 0), np.std(data, axis = 0)
         jitters = np.random.normal(0, 0.1, len(data)) # jitter for plotting

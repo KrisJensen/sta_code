@@ -21,7 +21,6 @@ mpl.rcParams['font.size'] = 8
 #%% set some parameters
 ext = ".pdf"
 seeds = [21,22,23,24,25]
-seeds = [21,22,23]
 
 basenames = {"WM": "MazeEnv_L4_max6_landscape_changing-rew_dynamic-rew_constant-maze_allo_planrew_plan5-6-7_VanillaRNN_iter10_tau5.0_opt_N800_linout_model",
              "STA":
@@ -114,7 +113,6 @@ for imodel, model in enumerate(models):
     all_time_steps = []
     for time_data in time_datas:
         time_scores, time_preds, time_targets, time_steps = [time_data[key] for key in ["all_scores", "all_preds", "all_targets", "all_steps"]]
-        score_array = np.array([scores.mean() for scores in time_scores])
         cat_targets = np.concatenate([np.concatenate(target) for target in time_targets if len(target) > 0])
         unique_targets = np.unique(cat_targets)
         time_steps = np.array(time_steps).mean(0).astype(int)
@@ -214,8 +212,6 @@ for imodel, model in enumerate(models):
     plt.savefig(f"{fname}{ext}", bbox_inches = "tight", transparent = True)
     plt.show()
     plt.close()
-
-    print(mean)
 
 
 #%% plot mean decoding

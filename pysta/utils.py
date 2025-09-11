@@ -58,10 +58,16 @@ def point_biserial_correlation(W, A):
     (equivalent to the pearson correlation when one variable is binary)
     W is continuous, A is binar
     """
+    
+    Wstd = W.std()
+    if Wstd == 0:
+        return np.nan
+    
     Aposs, Aimp = np.sign(A), (1-np.sign(A)) # possible and impossible transitions
     nposs, nimp, ntot = Aposs.sum(), Aimp.sum(), A.size # number of transitions
     mposs, mimp = (Aposs*W).sum() / nposs, (Aimp*W).sum() / nimp # mean W for possible/impossible transitions
-    corr = (mposs - mimp)/W.std()*np.sqrt(nposs*nimp/ntot**2) # point-biserial correlation
+    corr = (mposs - mimp)/Wstd * np.sqrt(nposs*nimp/ntot**2) # point-biserial correlation
+    
     return  corr
 
 

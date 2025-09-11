@@ -75,12 +75,7 @@ def reset_env_by_dist_dynamic(rnn, min_dist, max_dist, val_pos, val_neg):
 
 def run_func(rnn, min_dist = 5, max_dist = 6):
     
-    val_neg, val_pos = -0.1, 0.8
-    try:
-        if rnn.rl_rnn:
-            val_neg, val_pos = -0.6, 0.6
-    except:
-        print("not defined")
+    val_neg, val_pos = -0.6, 0.6
 
     rnn.reset() # reset agent
     if rnn.env.dynamic_rew:
@@ -104,32 +99,13 @@ def run_func(rnn, min_dist = 5, max_dist = 6):
 
 def get_model(base_model_name, model_type):
     
-    assert model_type in ["base_rnn", "rl_rnn", "sta", "dp"]
-    
-    #model_name = f"MazeEnv_L4_max6/goal_changing-rew_{movestr}-rew_constant-maze/allo_{inputstr}_plan5-6-7/VanillaRNN/{iterstr}_tau5.0_opt/N800_linout_L2/model11"
-    #rl_model_name = f"MazeEnv_L4_max6/landscape_changing-rew_{movestr}-rew_constant-maze/allo_{inputstr}_plan5-6-7/VanillaRNN/{iterstr}_tau5.0_opt/N800_linout_L2/model11"
-    
+    assert model_type in ["base_rnn", "sta"]
+
     base_static = "static-rew" in base_model_name
     base_wm = "planrew" in base_model_name
     basetask = ["moving", "static"][base_static]+"_"+["relrew", "planrew"][int(base_wm)]
-    
-    rl_model_name = base_model_name.replace("goal", "landscape").replace("static-rew", "dynamic-rew")
+    rnn, _, datadir = pysta.utils.load_model(base_model_name, create_sta = model_type == "sta") # load the model
 
-    if model_type == "base_rnn":
-        rnn, _, datadir = pysta.utils.load_model(base_model_name, create_sta = False) # load the model
-        rnn.rl_rnn = False
-    elif model_type == "sta":
-        rnn, _, datadir = pysta.utils.load_model(base_model_name, create_sta = True) # load the model
-        rnn.rl_rnn = False
-    elif model_type == "dp":
-        rnn, _, datadir = pysta.utils.load_model(base_model_name, create_sta = False, create_dp = True) # load the model
-        rnn.rl_rnn = False
-    elif model_type == "rl_rnn":
-        base_rnn, _, _ = pysta.utils.load_model(base_model_name, create_sta = False) # load the model
-        rnn, _, datadir = pysta.utils.load_model(rl_model_name, create_sta = False) # load the model
-        rnn.env = copy.deepcopy(base_rnn.env)
-        rnn.rl_rnn = True    
-        
     return rnn, datadir, basetask
 
 def collect_trial_data(base_model_name, model_type, keep_only_good_trials = True, min_dist = 3, max_dist = 6, num_trials = 20000, save = True):
@@ -152,6 +128,10 @@ def collect_trial_data(base_model_name, model_type, keep_only_good_trials = True
         for key, value in trial_data.items():
             trial_data[key] = value[good_trials, ...]
             
+    assert np.nanstd(trial_data["step_nums"][..., 0], 0).sum() == 0
+    step_nums = np.nanmean(trial_data["step_nums"][..., 0], 0).astype(int)
+    trial_data["step_nums"][..., 0] = step_nums[None, :]
+            
     # store this data for downstream analyses
     if save:
         pickle.dump(trial_data, open(f"{datadir}simple_{basetask}_trial_data_minmax{min_dist}-{max_dist}.pickle", "wb")) # save the trial data
@@ -163,28 +143,17 @@ def collect_trial_data(base_model_name, model_type, keep_only_good_trials = True
 def run_rnn_decoding(base_model_name, model_type, min_dist = 3, max_dist = 6, save = True):
     
     rnn, datadir, basetask = get_model(base_model_name, model_type)
-    
     trial_data = pickle.load(open(f"{datadir}simple_{basetask}_trial_data_minmax{min_dist}-{max_dist}.pickle", "rb")) # load the trial data
-    
-    assert np.nanstd(trial_data["step_nums"][..., 0], 0).sum() == 0
-    
-    step_nums = np.nanmean(trial_data["step_nums"][..., 0], 0).astype(int)
-    trial_data["step_nums"][..., 0] = step_nums[None, :]
-
-    alt_trial_data = copy.deepcopy(trial_data) # copy the trial data so we can modify it for the next decoder
-    rs = alt_trial_data["rs"]
-    alt_trial_data["rs"] = (rs - np.nanmean(rs, 0)[None, ...]) / (1e-10+np.nanstd(rs, 0)[None, ...])
 
     # run the decoding (using a reasonable inverse regularization strength based on the previous decoder)
-    neural_times, loc_times = np.arange(min_dist), np.arange(min_dist+1)
-    cv_result = pysta.analysis_utils.predict_locations_from_neurons(alt_trial_data, crossvalidate_loc = True, neural_times = neural_times, loc_times = loc_times, logistic_C = 1e-1)
+    neural_times, loc_times = np.arange(-1, min_dist), np.arange(min_dist+1)
+    cv_result = pysta.analysis_utils.predict_locations_from_neurons(alt_trial_data, crossvalidate_loc = True, neural_times = neural_times, loc_times = loc_times)
 
     print(np.round(cv_result["nongen_scores"], 2)) # print avg performance for comparison
 
     # save the result
     if save:
         pickle.dump(cv_result, open(f"{datadir}simple_{basetask}_decoder_generalization_performance_minmax{min_dist}-{max_dist}.pickle", "wb"))
-
 
     return cv_result
 
@@ -193,16 +162,9 @@ def decode_from_planning(base_model_name, model_type, min_dist = 3, max_dist = 6
     
     # try to decode from planning period either (i) the entire future, or (ii) whether a location will be visited _at some point_ (not start or goal)
     
-    None    
-    
-    #%%
-    # base_model_name = "MazeEnv_L4_max6/goal_changing-rew_static-rew_constant-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout_L2/model11"
-    # model_type = "base_rnn"
-    # base_model_name = "MazeEnv_L5_max6/goal_changing-rew_static-rew_constant-maze/allo_relrew_plan5-6-7/VanillaRNN/iter9-10-11_tau5.0_opt/N1200_linout_L2/model11"
-    # model_type = "rl_rnn" # ["base_rnn", "rl_rnn", "sta", "dp"]
-    
+
     rnn, datadir, basetask = get_model(base_model_name, model_type)
-    sys.stdout.flush()  
+    trial_data = pickle.load(open(f"{datadir}simple_{basetask}_trial_data_minmax{min_dist}-{max_dist}.pickle", "rb")) # load the trial data
     
 
     #%%
@@ -212,36 +174,11 @@ def decode_from_planning(base_model_name, model_type, min_dist = 3, max_dist = 6
 
     trial_data = pysta.analysis_utils.collect_data(rnn, num_trials = num_trials, run_func = dist_run_func) # this just simulates enough batches to get num_trials data and puts it all into a dict
 
-    #%%
-    
-    print(trial_data["sample_rews"].mean(0))
-    print(np.mean(trial_data["sample_rews"].max(-1) >= 0.3))
-    sys.stdout.flush()
-
-    if keep_only_good_trials:
-        good_trials = np.where(trial_data["sample_rews"].max(-1) >= 0.3)[0]
-        for key, value in trial_data.items():
-            trial_data[key] = value[good_trials, ...]
-    
-    #%%
-    
-    assert np.nanstd(trial_data["step_nums"][..., 0], 0).sum() == 0
-    
-    step_nums = np.nanmean(trial_data["step_nums"][..., 0], 0).astype(int)
-    trial_data["step_nums"][..., 0] = step_nums[None, :]
-
     alt_trial_data = copy.deepcopy(trial_data) # copy the trial data so we can modify it for the next decoder
     rs = alt_trial_data["rs"]
     alt_trial_data["rs"] = (rs - np.nanmean(rs, 0)[None, ...]) / (1e-10+np.nanstd(rs, 0)[None, ...])
 
     #%%
-
-    # run the decoding (using a reasonable inverse regularization strength )
-    neural_times, loc_times = [-1, 0], np.arange(min_dist+1)
-    cv_result = pysta.analysis_utils.predict_locations_from_neurons(alt_trial_data, crossvalidate_loc = True, neural_times = neural_times, loc_times = loc_times, logistic_C = 1e-1)
-
-    print(np.round(cv_result["nongen_scores"], 2)) # print avg performance for comparison
-
 
     #%% try to decode location at _any_ time
     neural_time = -1
@@ -278,7 +215,7 @@ def decode_from_planning(base_model_name, model_type, min_dist = 3, max_dist = 6
     
     #%%
     if save:
-        pickle.dump([cv_result, anytime_scores], open(f"{datadir}simple_{basetask}_decode_from_planning_minmax{min_dist}-{max_dist}.pickle", "wb"))
+        pickle.dump(anytime_scores, open(f"{datadir}simple_{basetask}_decode_from_planning_minmax{min_dist}-{max_dist}.pickle", "wb"))
 
     return
 
@@ -295,8 +232,8 @@ if __name__ == "__main__":
         from_planning = ("planning" in sys.argv)
     else:
         collect, decoding, from_planning = True, True, True
-        model_type = "base_rnn" # ["base_rnn", "rl_rnn", "sta"]
-        base_model_name = "MazeEnv_L4_max6/goal_changing-rew_static-rew_constant-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout_L2/model11"
+        model_type = "base_rnn"
+        base_model_name = "MazeEnv_L4_max6/goal_changing-rew_static-rew_constant-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout/model21"
 
     min_dist, max_dist = 3, 6
     seed = int(base_model_name.split("/model")[-1])
@@ -317,5 +254,5 @@ if __name__ == "__main__":
         print("\nrunning decoding from planning")
         decode_from_planning(base_model_name, model_type, min_dist = min_dist, max_dist = max_dist, save = True)
 
-    
+    print("\nFinished")
 

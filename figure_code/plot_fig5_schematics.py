@@ -11,8 +11,8 @@ pysta.reload()
 import os
 import matplotlib as mpl
 from pysta import basedir
-
-
+ext = ".pdf"
+basefigdir = f"{basedir}/figures/rnn_connectivity/"
 
 # %% load data
 
@@ -47,7 +47,7 @@ act_cols[1][ind1] = (0.95, 0.1, 0.95)
 bbox = mpl.transforms.Bbox([[2.1,1.0], [5.15,2.95]])
 pysta.plot_utils.plot_perspective_attractor(walls, vmap[:2],  act_cols = act_cols, vmin = 0, vmax = 1, cmap = "coolwarm",
                                             lw = 4, plot_proj = False, figsize = (7,4), aspect = (1,1,2.0), view_init = (-35,-10,-90),
-                                            bbox_inches = bbox, transparent = True, filename = f"{basefigdir}schematic_coordinates{ext}")
+                                            bbox_inches = bbox, transparent = True, filename = f"{basefigdir}schematic_coordinates{ext}", show = True)
 
 
 #%% schematic weights
@@ -61,7 +61,7 @@ for aind in adj_inds:
 bbox = mpl.transforms.Bbox([[2.1,1.0], [5.15,2.95]])
 pysta.plot_utils.plot_perspective_attractor(walls, vmap[:2],  act_cols = act_cols, vmin = 0, vmax = 1, cmap = "coolwarm",
                                             lw = 4, plot_proj = False, figsize = (7,4), aspect = (1,1,2.0), view_init = (-35,-10,-90),
-                                            bbox_inches = bbox, transparent = True, filename = f"{basefigdir}schematic_weights{ext}")
+                                            bbox_inches = bbox, transparent = True, filename = f"{basefigdir}schematic_weights{ext}", show = True)
                 
 
 
@@ -78,7 +78,7 @@ plt.close()
 
 pysta.plot_utils.plot_perspective_attractor(walls, vmap, vmin = 0, vmax = 1,
                                             lw = 4, plot_proj = False, figsize = (7,4), aspect = (1,1,2.0), view_init = (-30,-10,-90),
-                                            bbox_inches = bbox, transparent = True, filename = f"{basefigdir}schematic_activity{ext}")
+                                            bbox_inches = bbox, transparent = True, filename = f"{basefigdir}schematic_activity{ext}", show = True)
                 
 
 

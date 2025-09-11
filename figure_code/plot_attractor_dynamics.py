@@ -90,12 +90,12 @@ plt.xlim(0, 1)
 plt.legend(frameon = False, handletextpad = 0.5, handlelength = 0.6, loc = "lower center", bbox_to_anchor = (0.85, 0.1))
 plt.savefig(f"{basedir}/figures/attractor/change_by_stim_raw.pdf", bbox_inches = "tight", transparent = True)
 plt.show()
+plt.close()
 
 #%% now plot example neural trajectories
 
-strength_inds = np.array([0, 5, 8, 12, len(diffs)-1])
-
 diffs = np.abs(proj_all_acts - proj_old_r[None, None, :proj_all_acts.shape[2], ...]).sum((-1, -2))
+strength_inds = np.array([0, 5, 8, 12, len(diffs)-1])
 
 T = proj_all_acts.shape[1]
 ts = np.linspace(0, 1, T)
@@ -115,12 +115,11 @@ plt.xlim(0, 1)
 plt.ylabel("representational\nchange")
 plt.savefig(f"{basedir}/figures/attractor/change_by_time.pdf", bbox_inches = "tight", transparent = True)
 plt.show()
+plt.close()
 
 
 #%% now plot example raw neural trajectories
 
-
-#strength_inds = [0, 3,7, 8, len(strengths)-2]
 diffs_raw = ((all_all_acts - old_r.numpy()[None, None, :all_all_acts.shape[2], ...])**2).sum((-1, -2))
 
 plt.figure(figsize = (2,1.5))
@@ -138,6 +137,7 @@ plt.xlim(0, 1)
 plt.ylabel("rate change")
 plt.savefig(f"{basedir}/figures/attractor/raw_by_time.pdf", bbox_inches = "tight", transparent = True)
 plt.show()
+plt.close()
 
 
 #%% and for the STA
@@ -161,6 +161,7 @@ plt.xlim(0, 1)
 plt.ylabel("representational\nchange")
 plt.savefig(f"{basedir}/figures/attractor/sta_by_time.pdf", bbox_inches = "tight", transparent = True)
 plt.show()
+plt.close()
 
 #%% plot a scaffold with the two paths
 
@@ -194,6 +195,7 @@ plt.xticks([])
 plt.yticks([])
 plt.savefig(f"{basedir}/figures/attractor/stim_cbar{ext}", bbox_inches = "tight", transparent = True)
 plt.show()
+plt.close()
 
 
 # %%

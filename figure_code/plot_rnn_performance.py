@@ -70,8 +70,6 @@ plt.close()
 #%% then plot p(optimal) vs. difference in value or reward
 # here, 'optimality' is defined w.r.t. value and reward respectively
 
-# should not check how often it's optimal, should check how often it's correct under that metric
-
 num_bins = 41
 labels = ["reward", "value"]
 for imetric, metric_str in enumerate(["rew0", "val0"]):
