@@ -37,8 +37,6 @@ class BaseAgent(nn.Module):
         # pytorch boilerplate
         super(BaseAgent, self).__init__()
 
-        print("##### NEW #####")
-
         # store some hyperparameters
         self.env = env
         self.greedy = greedy
@@ -346,7 +344,7 @@ class BaseAgent(nn.Module):
             # plot a panel
             vmap_t = None if vmap is None else vmap[t] # optionally plot some useful data
             self.env.plot(loc = data["loc"][trial_num], step_num = data["step_num"], ax = ax, trial_num = trial_num, values = values, cmap = cmap, vmap = vmap_t)
-        plt.tight_layout()
+        plt.tight_layout = True
         if filename is not None:
             plt.savefig(filename, bbox_inches = "tight")
         plt.close()
@@ -376,6 +374,8 @@ class VanillaRNN(BaseAgent):
         nonlin_output : bool
             If True, have an additional hidden layer in the readout. Otherwise use a linear readout from the hidden state.
         """
+    
+        print("##### NEW #####")
     
         # store some model-specific parameters
         self.Nrec = Nrec
@@ -682,7 +682,7 @@ class SpaceTimeAttractor(BaseAgent):
             loc = self.env.loc[trial_num] if t == 0 else torch.argmax(self.r[trial_num, t]) # predicted location
             self.env.plot(loc = loc, vmap = self.r[trial_num, t, :], step_num = t, ax = ax, trial_num = trial_num,
                           cmap  = "YlOrRd", plot_optimal_actions = t<len(axs)-1, vmin = -0.1, vmax = 1.2, **kwargs)
-        plt.tight_layout()
+        plt.tight_layout = True
         if filename is not None:
             plt.savefig(filename, bbox_inches = "tight")
         plt.close()
