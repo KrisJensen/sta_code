@@ -11,8 +11,15 @@ from pysta import basedir
 import matplotlib as mpl
 from scipy.ndimage import gaussian_filter1d
 pysta.reload()
-
 ext = ".pdf"
+
+#%% set font with arial .ttf file
+import matplotlib as mpl
+import matplotlib.font_manager as fm
+font_path = f"{basedir}/data/arial.ttf"
+fm.fontManager.addfont(font_path)
+mpl.rcParams['font.family'] = "Arial"
+mpl.rcParams['font.size'] = 8
 
 #%%
 

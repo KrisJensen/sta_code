@@ -15,6 +15,15 @@ from pysta import basedir
 ext = ".pdf"
 basefigdir = f"{basedir}/figures/changing_maze_rnn/"
 
+#%% set font with arial .ttf file
+import matplotlib as mpl
+import matplotlib.font_manager as fm
+font_path = f"{basedir}/data/arial.ttf"
+fm.fontManager.addfont(font_path)
+mpl.rcParams['font.family'] = "Arial"
+mpl.rcParams['font.size'] = 8
+
+#%% load data
 seeds = [21,22,23,24,25]
 model_names = [f"MazeEnv_L4_max6/landscape_changing-rew_dynamic-rew_changing-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout/model{seed}" for seed in seeds]
 model_names_ref = [name.replace("changing-maze", "constant-maze") for name in model_names]

@@ -24,9 +24,13 @@ os.makedirs(f"{basedir}/figures/rnn_behaviour", exist_ok = True)
 os.makedirs(f"{basedir}/figures/simple_tasks", exist_ok = True)
 os.makedirs(f"{basedir}/figures/size", exist_ok = True)
 
-#%% Figure 1 & 2
-print("\nPlotting panels for figures 1 & 2")
-import plot_background_schematics
+#%% Figure 1
+print("\nPlotting panels for figure 1")
+import plot_fig1_schematics
+
+#%% Figure 2
+print("\nPlotting panels for figure 2")
+import plot_fig2_schematics
 
 #%% Figure 3
 print("\nPlotting panels for figure 3")

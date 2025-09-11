@@ -15,6 +15,14 @@ from pysta import basedir
 from scipy.ndimage import gaussian_filter1d
 ext = ".pdf"
 
+#%% set font with arial .ttf file
+import matplotlib as mpl
+import matplotlib.font_manager as fm
+font_path = f"{basedir}/data/arial.ttf"
+fm.fontManager.addfont(font_path)
+mpl.rcParams['font.family'] = "Arial"
+mpl.rcParams['font.size'] = 8
+
 #%% generate little schematic of relative vs absolute
 
 locs = np.arange(6)
@@ -102,6 +110,63 @@ for ilocs, locs in enumerate(all_locs):
     plt.show()
     plt.close()
 
+#%% plot an example RNN
+
+cell_locs = np.array([
+    [3,8],
+    [5.5,2],
+    [8,4],
+    [2,4],
+    [3.2,2],
+    [7.8,6],
+    [6,8],
+    [4.7,5.2]
+])
+cell_locs = cell_locs[np.argsort(cell_locs[:, 0])]
+
+minv, maxv = np.amin(cell_locs, axis = 0), np.amax(cell_locs, axis = 0)
+
+cell_locs = (cell_locs - minv[None, :])/(maxv-minv)[None, :]*2-1 # shift to origin
+
+plt.figure(figsize = (1.5,1.5))
+plt.scatter(cell_locs[:,0], cell_locs[:,1], s = 160, color = np.ones(3)*0.7, edgecolor = np.ones(3)*0.5)
+
+
+cons = [
+    (0, 3, -0.2, "+"),
+    (2,6, -0.1, "-"),
+    (1,4, 0.2, "+"),
+    (7,1,0.1,"-"),
+    (5,4,-0.1,"+"),
+    (1,0,0.2,"-"),
+    (4,7,0.2,"+"),
+    (6,5,0.2,"+"),
+    (3,5,-0.2,"-")
+]
+
+for con in cons:
+    loc0, loc1, rad = np.array(cell_locs[con[0]]), np.array(cell_locs[con[1]]), con[2]
+    dloc = loc1 - loc0
+    dloc = dloc / np.sqrt(np.sum(dloc**2)) # normalize
+    ex = True if con[3] == "+" else False
+    style = styleA if ex else styleB
+    
+    kw = dict(arrowstyle=style, color=plt.get_cmap("coolwarm")(0.8 if ex else 0.2))
+    
+    constyle = "arc3,rad="+str(rad)
+    a = patches.FancyArrowPatch(loc0+0.18*dloc, loc1-0.15*dloc,
+                             connectionstyle=constyle, **kw, lw = 1.3 if ex else 1.7)
+    plt.gca().add_patch(a)
+
+
+plt.xlim(-1.2, 1.2)
+plt.ylim(-1.2,1.2)
+plt.gca().axis("off")
+plt.savefig(f"{basedir}/figures/rnn_decoding/rnn_schematic{ext}", bbox_inches = "tight", transparent = True)
+plt.show()
+plt.close()
+    
+# %%
  
  #%% and plot an example 'space-by-time' reward function
 

@@ -12,6 +12,15 @@ from pysta.plot_utils import plot_perspective_attractor
 ext = ".pdf"
 basefigdir = f"{basedir}/figures/changing_maze_rnn/"
 
+#%% set font with arial .ttf file
+import matplotlib as mpl
+import matplotlib.font_manager as fm
+font_path = f"{basedir}/data/arial.ttf"
+fm.fontManager.addfont(font_path)
+mpl.rcParams['font.family'] = "Arial"
+mpl.rcParams['font.size'] = 8
+
+#%% set some parameters
 cols = {"stim": (0.35, 0.65, 0.2),
           "strong_ex": plt.get_cmap("coolwarm")(0.95), 
           "weak_ex": plt.get_cmap("coolwarm")(0.55),

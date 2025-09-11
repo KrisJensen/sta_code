@@ -11,6 +11,14 @@ import copy
 pysta.reload()
 ext = ".pdf"
 
+#%% set font with arial .ttf file
+import matplotlib as mpl
+import matplotlib.font_manager as fm
+font_path = f"{basedir}/data/arial.ttf"
+fm.fontManager.addfont(font_path)
+mpl.rcParams['font.family'] = "Arial"
+mpl.rcParams['font.size'] = 8
+
 #%%
 
 data = pickle.load(open(f"{basedir}/data/examples/example_task_data.pickle", "rb"))

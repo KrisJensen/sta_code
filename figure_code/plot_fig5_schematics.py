@@ -14,6 +14,87 @@ from pysta import basedir
 ext = ".pdf"
 basefigdir = f"{basedir}/figures/rnn_connectivity/"
 
+#%% set font with arial .ttf file
+import matplotlib as mpl
+import matplotlib.font_manager as fm
+font_path = f"{basedir}/data/arial.ttf"
+fm.fontManager.addfont(font_path)
+mpl.rcParams['font.family'] = "Arial"
+mpl.rcParams['font.size'] = 8
+
+
+# %% plot example projections
+
+
+np.random.seed(8)
+ts = np.linspace(0,1, 101)
+
+K = np.exp(-(ts[:, None] - ts[None, :])**2/(0.15**2))
+L = np.linalg.cholesky(K + np.eye(len(K))*1e-10)
+
+X = L @ np.random.normal(0, 1, (len(ts), 2))
+X[:, 1] *= -1
+
+Z1 = np.concatenate([ts[:, None], X], axis = -1)
+
+
+ax = plt.figure().add_subplot(projection='3d')
+ax.plot3D(Z1[:, 0], Z1[:, 1], Z1[:, 2], lw = 5)
+ax.set_xlabel("t")
+ax.set_ylabel("x")
+ax.set_zlabel("y")
+zmin, zmax = np.min(Z1[:, 2]), np.max(Z1[:, 2])
+delta = zmax - zmin
+ax.set_zlim(zmin - 0.1*delta, zmax + 0.1*delta)
+ax.axis("off")
+ax.view_init(20, -75, 0)
+#plt.savefig(f"{basedir}/figures/rnn_connectivity/traj3D_aligned{ext}", transparent = True, bbox_inches = "tight")
+ax.axis("on")
+plt.show()
+
+ax = plt.figure().add_subplot(projection='3d')
+ax.plot3D(Z1[:, 0], Z1[:, 1], 0*Z1[:, 2]+zmin-0.099*delta, lw = 1)
+ax.set_zlim(zmin - 0.1*delta, zmax + 0.1*delta)
+ax.axis("off")
+ax.view_init(20, -75, 0)
+#plt.savefig(f"{basedir}/figures/rnn_connectivity/traj2D_aligned{ext}", transparent = True, bbox_inches = "tight")
+ax.axis("on")
+plt.show()
+
+from scipy.spatial.transform import Rotation
+q = np.random.normal(0, 1, 4)
+q = q / np.sqrt(np.sum(q**2))
+print(np.sum(q**2))
+rot = Rotation.from_quat(q)
+Z2 = (rot.as_matrix() @ Z1.T).T
+
+
+ax = plt.figure().add_subplot(projection='3d')
+ax.plot3D(Z2[:, 0], Z2[:, 1], Z2[:, 2], lw = 5)
+zmin, zmax = np.min(Z2[:, 2]), np.max(Z2[:, 2])
+delta = zmax - zmin
+ax.set_zlim(zmin - 0.1*delta, zmax + 0.1*delta)
+ax.axis("off")
+ax.view_init(20, -75, 0)
+#plt.savefig(f"{basedir}/figures/rnn_connectivity/traj3D_nonaligned{ext}", transparent = True, bbox_inches = "tight")
+ax.axis("on")
+plt.show()
+
+# plt.figure(figsize = (3,2))
+# plt.plot(Z2[:, 0], Z2[:, 1])
+# ax.axis("off")
+ax = plt.figure().add_subplot(projection='3d')
+ax.plot3D(Z2[:, 0], Z2[:, 1], 0*Z2[:, 2]+zmin-0.099*delta, lw = 1)
+ax.set_zlim(zmin - 0.1*delta, zmax + 0.1*delta)
+ax.axis("off")
+ax.view_init(20, -75, 0)
+#plt.savefig(f"{basedir}/figures/rnn_connectivity/traj2D_nonaligned{ext}", transparent = True, bbox_inches = "tight")
+ax.axis("on")
+plt.show()
+
+# %%
+
+
 # %% load data
 
 example_model = "sta_MazeEnv_L4_max6_landscape_changing-rew_dynamic-rew_constant-maze_allo_planrew_plan5-6-7_VanillaRNN_iter10_tau5.0_opt_N800_linout_model22"

@@ -12,10 +12,18 @@ pysta.reload()
 from pysta import basedir
 ext = ".pdf"
 
+#%% set font with arial .ttf file
+import matplotlib as mpl
+import matplotlib.font_manager as fm
+font_path = f"{basedir}/data/arial.ttf"
+fm.fontManager.addfont(font_path)
+mpl.rcParams['font.family'] = "Arial"
+mpl.rcParams['font.size'] = 8
+
+#%% load data
+
 data = pickle.load(open(f"{basedir}/data/comparisons/performance_and_decoding_by_size.pickle", "rb"))
-
 sizes, perfs, decoding = data["sizes"], np.array(data["perfs"]), np.array(data["decoding"])
-
 cols = [plt.get_cmap("viridis")(s/np.amax(sizes)) for s in sizes]
 
 #%%

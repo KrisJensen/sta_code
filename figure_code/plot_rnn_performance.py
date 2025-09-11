@@ -10,10 +10,18 @@ import torch
 pysta.reload()
 from pysta import basedir
 from scipy.stats import binned_statistic
-
 ext = ".pdf"
 basefigdir = f"{basedir}/figures/rnn_behaviour/"
 
+#%% set font with arial .ttf file
+import matplotlib as mpl
+import matplotlib.font_manager as fm
+font_path = f"{basedir}/data/arial.ttf"
+fm.fontManager.addfont(font_path)
+mpl.rcParams['font.family'] = "Arial"
+mpl.rcParams['font.size'] = 8
+
+#%% load some data
 seeds = [21,22,23,24,25]
 model_names = [f"MazeEnv_L4_max6/landscape_changing-rew_dynamic-rew_constant-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout/model{seed}" for seed in seeds]
 datadirs = [f"{basedir}/data/rnn_analyses/" + "_".join(model_name.split("/")) + "_" for model_name in model_names]
