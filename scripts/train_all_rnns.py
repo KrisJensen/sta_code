@@ -35,7 +35,6 @@ for seed in seeds:
 #%% train egocentric
 commands["egocentric"] = []
 for seed in seeds:
-    #command = f"{base_command} --output_format egocentric --nonlin_output 1 --seed {seed}"
     command = f"{base_command} --output_format egocentric --seed {seed}"
     print(submit_slurm(command, f"train_RNN_egocentric_{seed}"))
     commands["egocentric"].append(command)
