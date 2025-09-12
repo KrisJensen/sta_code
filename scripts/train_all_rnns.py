@@ -149,7 +149,7 @@ for seed in seeds:
 #%% train networks of different sizes 100-10000
 sizes = [100,200,300,400,600,800,1000]
 commands["sizes"] = []
-seed = 20
+seed = seeds[0]-1
 for size in sizes:
     command = f"{base_command} --Nrec {size} --seed {seed}"
     print(submit_slurm(command, f"train_RNN_size{size}_{seed}", time = "32:00:00"))
