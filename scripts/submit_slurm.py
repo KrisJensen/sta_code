@@ -19,8 +19,10 @@ def slurm_submission_script(command, jobname, time = "36:00:00", mem = "32G", no
 #SBATCH --ntasks-per-node=1
 {extra_commands}
 
-#!source /nfs/nhome/live/kjensen/.bash_profile
-#!conda activate attractor_planner
+source ~/.bashrc
+conda activate pysta
+
+conda info
 
 {command}
 """
