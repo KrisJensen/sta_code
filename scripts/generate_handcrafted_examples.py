@@ -18,7 +18,7 @@ seed = 18
 torch.manual_seed(seed)
 np.random.seed(seed)
 max_steps = 5
-env = pysta.envs.MazeEnv(rew_landscape = False, output_format = "egocentric", batch_size = 1, dynamic_rew = True, planning_steps = 0, max_steps = max_steps) # static within trial, changes across trials
+env = pysta.envs.MazeEnv(rew_landscape = False, output_format = "egocentric", batch_size = 1, dynamic_rew = True, planning_steps = 0, max_steps = max_steps, rew_goal = 1.0, rew_nogoal = 0.0) # static within trial, changes across trials
 env.loc[0] = 5
 
 loc0 = env.loc.clone()
@@ -80,7 +80,7 @@ if save:
 
 #%% now look at different agent representations #####
 
-env_kwargs = {"output_format": "egocentric", "planning_steps": 0, "batch_size": 101, "max_steps": max_steps}
+env_kwargs = {"output_format": "egocentric", "planning_steps": 0, "batch_size": 101, "max_steps": max_steps, "rew_goal": 1.0, "rew_nogoal": 0.0}
 envs = [
     pysta.envs.MazeEnv(rew_landscape = False, dynamic_rew = False, changing_trial_rew = False, **env_kwargs), # static rew that is constant across trials
     pysta.envs.MazeEnv(rew_landscape = False, dynamic_rew = False, changing_trial_rew = True, **env_kwargs), # static within trial, changes across trials
@@ -112,7 +112,7 @@ for ienv, env in enumerate(envs):
         elif ienv == 1:
             test_goal = 1
             env.rews[...] = rmin
-            env.rews[..., test_goal] += rmax
+            env.rews[..., test_goal] = rmax
             env.compute_value_function()
         elif ienv == 2:
             env.goal[...] = goal0[...].clone()
@@ -142,7 +142,7 @@ for ienv, env in enumerate(envs):
                     "loc": loc0,
                     "goal": test_goal}
 
-            pysta.plot_utils.plot_flat_frame(filename = None, **kwargs, cmap = "YlOrRd", vmin = -0.5, vmax = 1.0, show = True)
+            pysta.plot_utils.plot_flat_frame(filename = None, **kwargs, cmap = "YlOrRd", vmin = None, vmax = None, show = True)
             
         example_rep_data[env_labels[ienv]][agent.label] = kwargs
 

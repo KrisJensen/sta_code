@@ -56,6 +56,12 @@ for seed in seeds:
     print(submit_slurm(command, f"train_RNN_changing_maze_midreg_{seed}"))
     commands["changing_maze_midreg"].append(command)
     
+#%% train WM changing maze mid_reg _and_ lowW
+commands["changing_maze_midreg_lowW"] = []
+for seed in seeds:
+    command = f"{base_command} --changing_trial_maze 1 --prefix midreg_lowW_ --r_reg 5e-6 --W_reg 2e-7 --seed {seed}"
+    print(submit_slurm(command, f"train_RNN_changing_maze_midreg_lowW_{seed}"))
+    commands["changing_maze_midreg_lowW"].append(command)
     
     
 #%% train WM changing maze low_Wreg

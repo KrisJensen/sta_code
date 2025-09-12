@@ -147,7 +147,7 @@ def run_rnn_decoding(base_model_name, model_type, min_dist = 3, max_dist = 6, sa
 
     # run the decoding (using a reasonable inverse regularization strength based on the previous decoder)
     neural_times, loc_times = np.arange(-1, min_dist), np.arange(min_dist+1)
-    cv_result = pysta.analysis_utils.predict_locations_from_neurons(alt_trial_data, crossvalidate_loc = True, neural_times = neural_times, loc_times = loc_times)
+    cv_result = pysta.analysis_utils.predict_locations_from_neurons(trial_data, crossvalidate_loc = True, neural_times = neural_times, loc_times = loc_times)
 
     print(np.round(cv_result["nongen_scores"], 2)) # print avg performance for comparison
 
@@ -162,17 +162,10 @@ def decode_from_planning(base_model_name, model_type, min_dist = 3, max_dist = 6
     
     # try to decode from planning period either (i) the entire future, or (ii) whether a location will be visited _at some point_ (not start or goal)
     
-
     rnn, datadir, basetask = get_model(base_model_name, model_type)
     trial_data = pickle.load(open(f"{datadir}simple_{basetask}_trial_data_minmax{min_dist}-{max_dist}.pickle", "rb")) # load the trial data
-    
-
-    #%%
-    def dist_run_func(rnn):
-        """wrapper for collecting data"""
-        return run_func(rnn, min_dist = min_dist, max_dist = max_dist) 
-
-    trial_data = pysta.analysis_utils.collect_data(rnn, num_trials = num_trials, run_func = dist_run_func) # this just simulates enough batches to get num_trials data and puts it all into a dict
+    assert np.nanstd(trial_data["step_nums"][..., 0], 0).sum() == 0
+    step_nums = np.nanmean(trial_data["step_nums"][..., 0], 0).astype(int)
 
     alt_trial_data = copy.deepcopy(trial_data) # copy the trial data so we can modify it for the next decoder
     rs = alt_trial_data["rs"]

@@ -23,20 +23,21 @@ mpl.rcParams['font.size'] = 8
 
 data = pickle.load(open(f"{basedir}/data/examples/example_task_data.pickle", "rb"))
 cmap = "viridis"
-vmin, vmax = -2.3, 1.15
+vmin, vmax = 2.3, 1.15
 no_loc = True
+figsize, mouse_size, cheese_size = (3.50/2.54, 3.50/2.54), 340, 300
 
 # plot moving goal
 moving_goal = data["moving_goal"]
 moving_goal2 = copy.deepcopy(moving_goal)
 moving_goal2["optimal_actions"], moving_goal2["loc"] = moving_goal["optimal_actions_t2"], moving_goal["loc_t2"]
     
-pysta.plot_utils.plot_flat_frame(filename = f"{basedir}/figures/handcrafted_examples/moving_goal1{ext}", vmap = moving_goal["rew"][0], **moving_goal, cmap = cmap, vmin = vmin, vmax = vmax, xlabel = None, show = True)
-pysta.plot_utils.plot_flat_frame(filename = f"{basedir}/figures/handcrafted_examples/moving_goal2{ext}", vmap = moving_goal2["rew"][1], goal_step_num = 1, **moving_goal2, cmap = cmap, vmin = vmin, vmax = vmax, xlabel = None, show = True)
+pysta.plot_utils.plot_flat_frame(filename = f"{basedir}/figures/handcrafted_examples/moving_goal1{ext}", vmap = moving_goal["rew"][0], **moving_goal, cmap = cmap, vmin = -0.6*vmin, vmax = +0.6*vmax, xlabel = None, show = True, figsize = figsize, mouse_size = mouse_size, cheese_size = cheese_size)
+pysta.plot_utils.plot_flat_frame(filename = f"{basedir}/figures/handcrafted_examples/moving_goal2{ext}", vmap = moving_goal2["rew"][1], goal_step_num = 1, **moving_goal2, cmap = cmap, vmin = -0.6*vmin, vmax = +0.6*vmax, xlabel = None, show = True, figsize = figsize, mouse_size = mouse_size, cheese_size = cheese_size)
 
 # plot static goal
 static_goal = data["static_goal"]
-pysta.plot_utils.plot_flat_frame(filename = f"{basedir}/figures/handcrafted_examples/static_goal{ext}", vmap = static_goal["rew"][0], **static_goal, cmap = cmap, vmin = vmin, vmax = vmax, show = True)
+pysta.plot_utils.plot_flat_frame(filename = f"{basedir}/figures/handcrafted_examples/static_goal{ext}", vmap = static_goal["rew"][0], **static_goal, cmap = cmap, vmin = -0.6*vmin, vmax = +0.6*vmax, show = True, figsize = figsize, mouse_size = mouse_size, cheese_size = cheese_size)
 
 # plot reward landscape at different times
 rew_land = data["rew_landscape"]
@@ -44,11 +45,11 @@ for i in range(4):
     rew_land_i = copy.deepcopy(rew_land)
     rew_land_i["loc"] = rew_land["all_locs"][i]
     rew_land_i["optimal_actions"] = None if i >= 2 else rew_land["optimal_actions"]
-    pysta.plot_utils.plot_flat_frame(filename = f"{basedir}/figures/handcrafted_examples/rew_land{i+1}{ext}", vmap = rew_land["rews"][i], **rew_land_i, cmap = cmap, vmin = vmin, vmax = vmax, xlabel = None, show = True)
+    pysta.plot_utils.plot_flat_frame(filename = f"{basedir}/figures/handcrafted_examples/rew_land{i+1}{ext}", vmap = rew_land["rews"][i], **rew_land_i, cmap = cmap, vmin = -1*vmin, vmax = +1*vmax, xlabel = None, show = True, figsize = figsize, mouse_size = mouse_size, cheese_size = cheese_size)
 
 #%%
 plt.figure(figsize = (0.6,4))
-plt.imshow(np.linspace(+1, -1, 101)[:, None], vmin = vmin, vmax = vmax, aspect = "auto", cmap = cmap)
+plt.imshow(np.linspace(+1, -1, 101)[:, None], vmin = -1*vmin, vmax = vmax, aspect = "auto", cmap = cmap)
 plt.xticks([])
 plt.yticks([])
 plt.savefig(f"{basedir}/figures/handcrafted_examples/rew_cbar{ext}", bbox_inches = "tight", transparent = True)
@@ -58,32 +59,30 @@ plt.close()
 
 #%% now plot example representations
 
+figsize, mouse_size, cheese_size = (3.65/2.54, 3.65/2.54), 340, 300
+
 data = pickle.load(open(f"{basedir}/data/examples/example_rep_data.pickle", "rb"))
 env_labels = ["static", "changing", "moving", "landscape"]
 env_titles = ["constant goal", "changing goal", "moving goal", "reward landscape"]
 
-cmap_vals = {"td": [0.2, 1.0], "sr":[-1.5, 1.], "sta": [0, 0.8]}
 for agent in ["td", "sr", "sta"]:
     for env in env_labels:
-        vmin, vmax = cmap_vals[agent]
         kwargs = data[env][agent]
         fname = f"{basedir}/figures/handcrafted_examples/{env}_{agent}{ext}"
-
-        # renormalize slightly
-        kwargs["vmap"] = np.maximum(np.minimum(kwargs["vmap"], vmax), vmin)
-        kwargs["vmap"] = (kwargs["vmap"] - vmin) / (vmax - vmin)
         
         if agent == "sta":
             kwargs["vmap"] = kwargs["vmap"][:-1, :]
-            pysta.plot_utils.plot_perspective_attractor(filename = fname, **kwargs, cmap = "YlOrRd", vmin = -0.15, vmax = 1.2, show = True, goal_inds = range((0 if env == "moving" else 1), kwargs["vmap"].shape[0]), bbox_inches = mpl.transforms.Bbox([[2,1.45], [5.3,2.54]]))
+            pysta.plot_utils.plot_perspective_attractor(filename = fname, **kwargs, cmap = "YlOrRd", vmin = -0.15, vmax = 1.2, show = True, goal_inds = range((0 if env == "moving" else 1), kwargs["vmap"].shape[0]), bbox_inches = mpl.transforms.Bbox([[2.5,1.6], [5.9,2.8]]), figsize = (8.22,4.4))
         else:
-            if env == "changing" and agent == "td":
-                vmin, vmax = 0.15, 0.25
-            elif env == "moving" and agent == "td":
-                vmin, vmax = 0.20, 0.30
-            else:
-                vmin, vmax = -0.15, 1.2
-            pysta.plot_utils.plot_flat_frame(filename = fname, **kwargs, cmap = "YlOrRd", vmin = vmin, vmax = vmax, show = True)
+            minval, maxval = kwargs["vmap"].min(), kwargs["vmap"].max()
+            vmin, vmax = (0.15, 0.20) if agent+env in ["tdstatic", "srstatic", "srchanging"] else (0.5,2.4)
+            vmin, vmax = minval - vmin*(maxval - minval), maxval + vmax*(maxval - minval)
+            if agent == "td":
+                vmin, vmax = (0.45*0.85, 1.1) if env == "static" else (0.541, 0.6)
+            if agent == "sr":
+                vmin, vmax = 0.2, 4.0
+            print(env, agent, minval, maxval)
+            pysta.plot_utils.plot_flat_frame(filename = fname, **kwargs, cmap = "YlOrRd", vmin = vmin, vmax = vmax, show = True, figsize = figsize, mouse_size = mouse_size, cheese_size = cheese_size)
 
 
 

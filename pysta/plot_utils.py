@@ -37,7 +37,7 @@ mouse_path = "".join([att["d"] for att in mouse_attributes])
 mouse_marker = process_marker(parse_path(mouse_path))
 
 
-def plot_flat_frame(walls, filename = None, goal = None, loc = None, optimal_actions = None, ax = None, vmap = None, goal_step_num = 0, cmap = "coolwarm", vmin = None, vmax = None, xlabel = None, show = False, **kwargs):
+def plot_flat_frame(walls, figsize = (1.5,1.5), filename = None, cheese_size = 350, mouse_size = 450, goal = None, loc = None, optimal_actions = None, ax = None, vmap = None, goal_step_num = 0, cmap = "coolwarm", vmin = None, vmax = None, xlabel = None, show = False, **kwargs):
     """
     Function for plotting a snapshot of an environment
     
@@ -60,7 +60,7 @@ def plot_flat_frame(walls, filename = None, goal = None, loc = None, optimal_act
     """
     
     if ax is None:
-        plt.figure(figsize = (1.5,1.5))
+        plt.figure(figsize = figsize)
         ax = plt.gca()
     
     N = walls.shape[0]
@@ -100,7 +100,7 @@ def plot_flat_frame(walls, filename = None, goal = None, loc = None, optimal_act
         None # don't plot goal
     elif type(goal) == int:
         goal_loc = index_to_loc(goal, L)
-        ax.scatter(goal_loc[0], goal_loc[1], color = "k", marker = cheese_marker, s = 350, zorder = 80, lw = 0.75)
+        ax.scatter(goal_loc[0], goal_loc[1], color = "k", marker = cheese_marker, s = cheese_size, zorder = 80, lw = 0.75)
     else:
         goal_loc = index_to_loc(goal, L)[:, goal_step_num:]
         for i_g, g in enumerate(goal_loc.T[:-1]):
@@ -109,11 +109,11 @@ def plot_flat_frame(walls, filename = None, goal = None, loc = None, optimal_act
             col = np.array([222, 155, 0])/255
             arrow = (i_g == goal_loc.shape[-1]-2)
             ax.arrow(g[0], g[1], g1[0]-g[0], g1[1]-g[1], color = col, alpha = alpha, length_includes_head = True, width = 0.1, head_width = 0.35*arrow, head_length = 0.45*arrow)
-        ax.scatter(goal_loc[0, 0], goal_loc[1, 0], color = "k", marker = cheese_marker, s = 350, zorder = 99, lw = 0.75)
+        ax.scatter(goal_loc[0, 0], goal_loc[1, 0], color = "k", marker = cheese_marker, s = cheese_size, zorder = 99, lw = 0.75)
     
     if loc is not None: # plot current location
         agent_loc = index_to_loc(loc, L)
-        ax.scatter(agent_loc[0], agent_loc[1], color = "k", marker = mouse_marker, s = 450, lw = 1.25, zorder = 100)
+        ax.scatter(agent_loc[0], agent_loc[1], color = "k", marker = mouse_marker, s = mouse_size, lw = 1.25, zorder = 100)
 
     
     if optimal_actions is not None:

@@ -39,7 +39,7 @@ perfs = data["perfs"]
 
 for ienv, env in enumerate(env_labels):
 
-    fig = plt.figure(figsize = (1.9,1.5))
+    fig = plt.figure(figsize = (1.76,1.35))
     ax = plt.gca()
 
     data = perfs[:, ienv, :-1] # performance of the agents
@@ -57,7 +57,7 @@ for ienv, env in enumerate(env_labels):
     ax.set_xticklabels(agent_labels)
 
     ax.set_ylim(0, 1.02)
-    ax.set_ylabel("% correct", labelpad = -7)
+    ax.set_ylabel("% correct", labelpad = -5)
 
     ax.set_yticks([0,1])
     ax.axhline(baseline, color = np.ones(3)*0.5)

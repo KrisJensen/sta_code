@@ -11,7 +11,8 @@ from .maze_utils import sample_maze, compute_adjacency, compute_shortest_dists
 class MazeEnv():
     
     def __init__(self, side_length: int = 4, max_steps: int = 6, changing_trial_maze: bool = False, dynamic_rew: bool = True, changing_trial_rew: bool = True, batch_size: int = 11, sample_wall_num: int = 8,
-                 rew_landscape: bool = True, relative_rew: bool = True, output_format: str = "allocentric", planning_steps = [1,], working_memory = False, inp_noise = 0.0, inp_noise_planning = None, **kwargs):
+                 rew_landscape: bool = True, relative_rew: bool = True, output_format: str = "allocentric", planning_steps = [1,], working_memory = False, inp_noise = 0.0, inp_noise_planning = None, 
+                 rew_goal = 0.6, rew_nogoal = -0.6, **kwargs):
         """
         Maze environment with a variety of possible configurations and reward functions
 
@@ -68,6 +69,7 @@ class MazeEnv():
         self.num_actions = 5 # number of possible egocentric actions
         self.planning_steps = planning_steps
         self.working_memory = working_memory
+        self.rew_goal, self.rew_nogoal = rew_goal, rew_nogoal
         
         self.output_format = output_format
         # dimensionality of the output space is either the number of actions or number of locs
@@ -244,9 +246,9 @@ class MazeEnv():
             if not self.changing_trial_rew: # goal trajectory is the same across trials
                 self.goal[...] = self.goal[:1, ...]
             
-            self.rews = torch.zeros(self.batch, self.max_steps+1, self.num_locs) - 0.6 # default negative reward
+            self.rews = torch.zeros(self.batch, self.max_steps+1, self.num_locs) + self.rew_nogoal # default negative reward
             for t in range(self.max_steps+1):
-                self.rews[self.batch_inds, t, self.goal[:, t]] = 0.6 # positive reward at the goal location
+                self.rews[self.batch_inds, t, self.goal[:, t]] = self.rew_goal # positive reward at the goal location
         
         self.compute_value_function()
     

@@ -27,6 +27,7 @@ mpl.rcParams['font.size'] = 8
 seeds = [21,22,23,24,25]
 model_names = [f"MazeEnv_L4_max6/landscape_changing-rew_dynamic-rew_changing-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout/model{seed}" for seed in seeds]
 model_names_ref = [name.replace("changing-maze", "constant-maze") for name in model_names]
+model_names = [f"MazeEnv_L4_max6/landscape_changing-rew_dynamic-rew_changing-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout/old_model{seed}" for seed in [21,23,24,25]]
 datadirs = [f"{basedir}/data/rnn_analyses/" + "_".join(model_name.split("/")) + "_" for model_name in model_names]
 datadirs_ref = [f"{basedir}/data/rnn_analyses/" + "_".join(model_name.split("/")) + "_" for model_name in model_names_ref]
 
@@ -237,7 +238,7 @@ labels = ["states", "transitions"]
 for idata, data_type in enumerate(["", "transition_"]):
 
     all_data_true = [pickle.load(open(f"{datadir}decoder_{data_type}generalization_performance.pickle", "rb")) for datadir in datadirs]
-    all_data_ref = [pickle.load(open(f"{datadir.replace('changing-maze', 'constant-maze')}decoder_{data_type}generalization_performance.pickle", "rb")) for datadir in datadirs]
+    all_data_ref = [pickle.load(open(f"{datadir}decoder_{data_type}generalization_performance.pickle", "rb")) for datadir in datadirs_ref]
 
     plan_perfs, plan_xs = [], []
     ex_perfs, ex_xs = [], []
