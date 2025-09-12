@@ -28,7 +28,7 @@ def parse_args(**kwargs):
     parser.add_argument('--Nrec', type = int, default = 800, help = "number of hidden units")
     parser.add_argument('--nonlin_output', default = 0, type = int, help = "if true, include a hidden layer in the output function from the RNN")
     parser.add_argument('--r_reg', type = float, default = 1e-5, help = "rate regularization strength")
-    parser.add_argument('--W_reg', type = float, default = 1e-6, help = "weight regularization strength")
+    parser.add_argument('--W_reg', type = float, default = 2e-7, help = "weight regularization strength")
     parser.add_argument('--ent_reg', type = float, default = 1e-4, help = "entropy regularization strength")
     parser.add_argument('--rec_noise', type = float, default = 1e-3, help = "recurrent noise magnitude")
     parser.add_argument('--force_optimal', default = 1, type = int, help = "if true, force the agent to follow an optimal trajectory during training")
