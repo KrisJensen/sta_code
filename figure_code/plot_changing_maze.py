@@ -38,7 +38,7 @@ perfs = pickle.load(open(f"{basedir}/data/comparisons/rnn_generalisation.pickle"
 
 for ienv, env in enumerate([0, 3]):
     data =  perfs[..., env, np.array([0,3]), 0].mean(1) # performance of static/changing models in static/changing tasks across seeds and repeats, then avg across repeats
-    plt.figure(figsize = (1.6,2))
+    plt.figure(figsize = (1.4,1.1))
 
     xs, ms, ss = np.arange(data.shape[1]), np.mean(data, axis = 0), np.std(data, axis = 0)
     jitters = np.random.normal(0, 0.1, len(data)) # jitter for plotting
@@ -46,9 +46,15 @@ for ienv, env in enumerate([0, 3]):
     for idata, datapoints in enumerate(data.T):
         plt.scatter(jitters+xs[idata], datapoints, marker = ".", color = "k", alpha = 0.5, linewidth = 0.0, s = 80)
 
-    plt.xticks(xs, ["fixed\nmaze", "changing\nmaze"])#, rotation = 45, ha = "right")
+    if ienv == 1:
+        plt.xticks(xs, ["trained in\nfixed", "trained in\nchanging"])#, rotation = 45, ha = "right")
+        plt.ylabel("accuracy in\nchanging maze", labelpad = 0)
+        plt.gca().tick_params(axis='x', which='major', pad=2)
+    else:
+        plt.xticks([])
+        plt.ylabel("accuracy in\nfixed maze", labelpad = 0)
+        
     plt.axhline(0.2, color = np.ones(3)*0.6)
-    plt.ylabel("accuracy", labelpad = -7)
     plt.yticks([0, 1])
     plt.gca().spines[['right', 'top']].set_visible(False)
     plt.savefig(f"{basefigdir}performance{ienv}{ext}", bbox_inches = "tight", transparent = True)
@@ -57,7 +63,7 @@ for ienv, env in enumerate([0, 3]):
 
 #%% load data on effective connectivity
 
-changing_maze_results = pickle.load(open(f"{datadirs[2]}correlation_results.pickle", "rb")) # load data for example agent
+changing_maze_results = pickle.load(open(f"{datadirs[1]}correlation_results.pickle", "rb")) # load data for example agent
 walls = changing_maze_results["wall_configs"] # the walls used in the trials
 
 #%% plot two examples mazes
@@ -73,12 +79,13 @@ adj_stds = np.std(all_adjs, axis = 0)
 always_same = np.zeros((16, 16))
 always_same[(adj_stds == 0).reshape(16, 16)] = np.nan
 
+figsize = (1.2, 1.2)
 for iind, ind in enumerate([ind1, ind2]): # for each example
     # plot the maze structure
-    pysta.plot_utils.plot_flat_frame(filename = f"{basefigdir}ex_maze{iind}{ext}", vmap = np.zeros((4,4)), vmin = -1, vmax = 1, cmap = "coolwarm", walls = walls[ind], show = True)
+    pysta.plot_utils.plot_flat_frame(filename = f"{basefigdir}ex_maze{iind}{ext}", figsize = figsize, vmap = np.zeros((4,4)), vmin = -1, vmax = 1, cmap = "coolwarm", walls = walls[ind], show = True)
 
     # plot the true adjacency matrix
-    plt.figure(figsize = (1.5,1.5))
+    plt.figure(figsize = figsize)
     plt.imshow(changing_maze_results["adjs"][ind] + always_same, cmap = "coolwarm")
     plt.xticks([])
     plt.yticks([])
@@ -87,7 +94,7 @@ for iind, ind in enumerate([ind1, ind2]): # for each example
     plt.close()
     
     # plot the inferred adjacency matrix
-    plt.figure(figsize = (1.5,1.5))
+    plt.figure(figsize = figsize)
     Weff = changing_maze_results["Weffs"][ind]
     vmin, vmax = np.quantile(Weff, 0.05), np.quantile(Weff, 0.95)
     plt.imshow(Weff + always_same, cmap = "coolwarm", vmin = vmin, vmax = vmax)
@@ -143,7 +150,7 @@ for iref, plot_dirs in enumerate([datadirs, datadirs_ref]):
         
     data = np.array([all_true, all_false]).T # (2, num_mazes, num_pairs)
 
-    plt.figure(figsize = (1.6,2))
+    plt.figure(figsize = (1.4, 1.1))
 
     xs, ms, ss = np.arange(data.shape[1]), np.mean(data, axis = 0), np.std(data, axis = 0)
     jitters = np.random.normal(0, 0.1, len(data)) # jitter for plotting
@@ -152,7 +159,15 @@ for iref, plot_dirs in enumerate([datadirs, datadirs_ref]):
         plt.scatter(jitters+xs[idata], datapoints, marker = ".", color = "k", alpha = 0.5, linewidth = 0.0, s = 80)
         
     plt.xticks(xs, ["same\nmaze", "different\nmaze"])#, rotation = 45, ha ="right")
-    plt.ylabel("correlation of W with A")
+    
+    if iref == 1:
+        plt.xticks(xs, ["same\nmaze", "different\nmaze"])#, rotation = 45, ha = "right")
+        plt.ylabel("fixed RNN\ncorr(W, A)", labelpad = -5)
+        plt.gca().tick_params(axis='x', which='major', pad=2)
+    else:
+        plt.xticks([])
+        plt.ylabel("changing RNN\ncorr(W, A)", labelpad = -5)
+    
     plt.axhline(0.0, color = "k")
     plt.gca().spines[['right', 'top']].set_visible(False)
     plt.ylim(0.0, 1.0)

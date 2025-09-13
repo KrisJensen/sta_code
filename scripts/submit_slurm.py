@@ -5,7 +5,7 @@ import subprocess
 import pysta
 pysta.reload()
 
-def slurm_submission_script(command, jobname, time = "36:00:00", mem = "32G", nodes = 1, cpus_per_task = 8, partition = "cpu", extra_commands = ""):
+def slurm_submission_script(command, jobname, time = "48:00:00", mem = "32G", nodes = 1, cpus_per_task = 8, partition = "cpu", extra_commands = ""):
 
     script = f"""#!/bin/bash
 #SBATCH --job-name={jobname}
@@ -19,8 +19,10 @@ def slurm_submission_script(command, jobname, time = "36:00:00", mem = "32G", no
 #SBATCH --ntasks-per-node=1
 {extra_commands}
 
-#!source /nfs/nhome/live/kjensen/.bash_profile
-#!conda activate attractor_planner
+source ~/.bashrc
+conda activate pysta
+
+conda info
 
 {command}
 """

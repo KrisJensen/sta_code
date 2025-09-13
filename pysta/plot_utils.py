@@ -37,7 +37,7 @@ mouse_path = "".join([att["d"] for att in mouse_attributes])
 mouse_marker = process_marker(parse_path(mouse_path))
 
 
-def plot_flat_frame(walls, figsize = (1.5,1.5), filename = None, cheese_size = 350, mouse_size = 450, goal = None, loc = None, optimal_actions = None, ax = None, vmap = None, goal_step_num = 0, cmap = "coolwarm", vmin = None, vmax = None, xlabel = None, show = False, **kwargs):
+def plot_flat_frame(walls, figsize = (1.5,1.5), filename = None, cheese_size = 350, mouse_size = 450, lw = 4.5, goal = None, loc = None, optimal_actions = None, ax = None, vmap = None, goal_step_num = 0, cmap = "coolwarm", vmin = None, vmax = None, xlabel = None, show = False, **kwargs):
     """
     Function for plotting a snapshot of an environment
     
@@ -72,7 +72,6 @@ def plot_flat_frame(walls, figsize = (1.5,1.5), filename = None, cheese_size = 3
         ax.axvline(i-0.5, color = "k", zorder = 1)
         ax.axhline(i-0.5, color = "k", zorder = 1)
 
-    lw = 4.5
     for s in range(N): #for each state
         for i in range(walls.shape[-1]): #for each neighbor
             if bool(walls[s, i]):
@@ -539,7 +538,12 @@ def plot_slot_connectivity(W, num_locs, vmin = 0.01, vmax = 0.995, filename = No
         plt.savefig(filename, bbox_inches = "tight", transparent = transparent)
     if show:
         plt.show()
-    plt.close()
+        
+    if filename or show:
+        plt.close()
+        return
+    else:
+        return plt.gca()
 
 class Arrow3D(FancyArrowPatch):
     def __init__(self, xs, ys, zs, *args, **kwargs):

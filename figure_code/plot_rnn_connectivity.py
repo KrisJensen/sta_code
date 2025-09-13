@@ -60,7 +60,7 @@ def get_model_and_subs(model, seed, subspace_type):
 #%%
 
 models = ["WM", "STA", "STA_true", "relrew"]
-
+ex_seed = 1
 for imodel, model in enumerate(models):
     os.makedirs(f"{basefigdir}{model}/", exist_ok = True)
     
@@ -71,7 +71,7 @@ for imodel, model in enumerate(models):
         #%%
         
         # load data
-        connectivity_data, Csubs = get_model_and_subs(model, seeds[0], subspace_type)
+        connectivity_data, Csubs = get_model_and_subs(model, seeds[ex_seed], subspace_type)
         Csub_flat = np.concatenate(Csubs, axis = 0)
         
         rnn = connectivity_data["rnn"]
@@ -129,9 +129,15 @@ for imodel, model in enumerate(models):
             xlabel = None
 
         for irow, Win_row in enumerate(Win_eff_plot.reshape(num_slots,num_locs,num_slots*num_locs)):
-            pysta.plot_utils.plot_slot_connectivity(Win_row, num_locs, xticks = xticks, xtickrot=0, xlabel = xlabel, ylabel = f"slot {irow}", yticks = [],
-                                                    filename = f"{basefigdir}{model}/input_row{irow}{substr}{ext}", show = True, figsize = (4,2), transparent = True)
-
+            ax = pysta.plot_utils.plot_slot_connectivity(Win_row, num_locs, xticks = xticks, xtickrot=0, yticks = [],
+                                                        show = False, figsize = (2.65,1.33), transparent = True)
+            plt.xlabel(xlabel, labelpad = +1)
+            plt.ylabel(f"slot {irow}", labelpad = 2.5)
+            ax.tick_params(axis='x', which='major', pad=2, length = 0)
+            plt.savefig(f"{basefigdir}{model}/input_row{irow}{substr}{ext}", transparent = True)
+            plt.show()
+            plt.close()
+            
 
         #%% plot average n+1 connectivity together with adjacency matrices
 
@@ -142,7 +148,7 @@ for imodel, model in enumerate(models):
         W12 = np.mean(np.array(Ws), axis = 0)
 
         for imat, mat in enumerate([W12, np.eye(adj.shape[0]), adj, np.sign(A2), np.sign(A3)]):
-            plt.figure(figsize = (3,3))
+            plt.figure(figsize = (1.0,1.0))
             plt.imshow(mat, cmap = "coolwarm", vmin = np.quantile(mat, 0.25), vmax = np.quantile(mat, 0.94))
             plt.xticks([])
             plt.yticks([])
@@ -204,9 +210,9 @@ for imodel, model in enumerate(models):
             all_Wavgs_abs.append(Wavgs_abs)
             all_Arefs.append(Arefs)
             
-        Wavgs_abs = np.array(all_Wavgs_abs[0])
-        Wavgs = np.array(all_Wavgs[0])
-        Arefs = all_Arefs[0]
+        Wavgs_abs = np.array(all_Wavgs_abs[ex_seed])
+        Wavgs = np.array(all_Wavgs[ex_seed])
+        Arefs = all_Arefs[ex_seed]
         
         #%% compute within vs. across maze similarity
         same, diff = [], []
@@ -251,52 +257,6 @@ for imodel, model in enumerate(models):
                 plt.close()
 
 
-        #%% now plot the similarity plots
-
-        for isign in range(3):
-            plot_deltas = abs_deltas
-            if isign == 0:
-                plot_scores = np.array(all_scores_abs)
-            elif isign == 1:
-                plot_scores = np.array(all_scores)[:, 0, ...]
-            else:
-                plot_scores = np.array(all_scores)[:, 1, ...]
-
-            # plot the similarity of each effective weight matrix to each reference power of the adjacency matrix
-            plt.figure(figsize = (3,2))
-            #plt.figure(figsize = (2.5,1.8))
-            for idelta, score in enumerate(np.transpose(plot_scores, (1,0,2))):
-                m, s = score.mean(axis = 0), score.std(axis = 0)
-                plt.plot(plot_deltas, m, label = f"{idelta}")
-                plt.fill_between(plot_deltas, m-s, m+s, alpha = 0.2, linewidth = 0)
-            plt.xlabel("order of adjacency matrix")
-            plt.ylabel("similarity to W")
-            plt.gca().spines[['right', 'top']].set_visible(False)
-            #plt.legend([r'$W_\Delta = {} $'.format(str(delta)) for delta in deltas], loc = "upper center", bbox_to_anchor = (1.19, 0.8))
-            plt.legend(loc = "upper center", bbox_to_anchor = (0.5, 1.15), ncol = 4,
-                    handlelength = 1.2, handletextpad = 0.5, columnspacing = 0.8, frameon = False)
-            plt.xticks(plot_deltas)
-            plt.savefig(f"{basefigdir}{model}/similarity{substr}{isign}{ext}", bbox_inches = "tight", transparent = True)
-            plt.show()
-            plt.close()
-
-
-        # plot the parameter scale
-        plt.figure(figsize = (3,2))
-        #plt.figure(figsize = (2.5,1.8))
-        m, s = np.array(all_scales).mean(0), np.array(all_scales).std(0)
-        plt.plot(abs_deltas, m, color = "k")
-        plt.fill_between(abs_deltas, m-s, m+s, alpha = 0.2, color = "k", linewidth = 0)
-        plt.xlabel("slot difference")
-        plt.ylabel("average strength")
-        #plt.yticks([0.15,0.20,0.25,0.30])
-        plt.gca().spines[['right', 'top']].set_visible(False)
-        plt.xticks(abs_deltas)
-        plt.savefig(f"{basefigdir}{model}/scale{substr}{ext}", bbox_inches = "tight", transparent = True)
-        plt.show()
-        plt.close()
-
-
         #%% plot average connectivity as a projection
         
         ind = 6
@@ -315,6 +275,51 @@ for imodel, model in enumerate(models):
                                                     lw = 4, plot_proj = False, figsize = (7,4), aspect = (1,1,3.6), view_init = (-38,-10,-90), show = True, edgecolors = edgecolors,
                                                     bbox_inches = mpl.transforms.Bbox([[2.0,1.35], [5.1,2.65]]), transparent = True)
                     
+
+        #%% now plot the similarity plots
+        figsize = (1.9, 1.25)
+        for isign in range(3):
+            plot_deltas = abs_deltas
+            if isign == 0:
+                plot_scores = np.array(all_scores_abs)
+            elif isign == 1:
+                plot_scores = np.array(all_scores)[:, 0, ...]
+            else:
+                plot_scores = np.array(all_scores)[:, 1, ...]
+
+            # plot the similarity of each effective weight matrix to each reference power of the adjacency matrix
+            plt.figure(figsize = figsize)
+            for idelta, score in enumerate(np.transpose(plot_scores, (1,0,2))):
+                m, s = score.mean(axis = 0), score.std(axis = 0)
+                plt.plot(plot_deltas, m, label = f"{idelta}")
+                plt.fill_between(plot_deltas, m-s, m+s, alpha = 0.2, linewidth = 0)
+            plt.xlabel("order of adjacency matrix", labelpad = 3.5)
+            plt.ylabel("similarity to W", labelpad = 2.5)
+            plt.gca().spines[['right', 'top']].set_visible(False)
+            #plt.legend([r'$W_\Delta = {} $'.format(str(delta)) for delta in deltas], loc = "upper center", bbox_to_anchor = (1.19, 0.8))
+            plt.legend(loc = "upper center", bbox_to_anchor = (0.5, 1.15), ncol = 4,
+                    handlelength = 1.2, handletextpad = 0.5, columnspacing = 0.8, frameon = False)
+            plt.xticks(plot_deltas)
+            plt.xlim(0,3)
+            plt.savefig(f"{basefigdir}{model}/similarity{substr}{isign}{ext}", bbox_inches = "tight", transparent = True)
+            plt.show()
+            plt.close()
+
+
+        # plot the parameter scale
+        plt.figure(figsize = figsize)
+        m, s = np.array(all_scales).mean(0), np.array(all_scales).std(0)
+        plt.plot(abs_deltas, m, color = "k")
+        plt.fill_between(abs_deltas, m-s, m+s, alpha = 0.2, color = "k", linewidth = 0)
+        plt.xlabel("slot difference")
+        plt.ylabel("average strength")
+        #plt.yticks([0.15,0.20,0.25,0.30])
+        plt.gca().spines[['right', 'top']].set_visible(False)
+        plt.xticks(abs_deltas)
+        plt.savefig(f"{basefigdir}{model}/scale{substr}{ext}", bbox_inches = "tight", transparent = True)
+        plt.show()
+        plt.close()
+
 
 #%% plot planning >< execution overlap
 

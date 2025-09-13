@@ -10,9 +10,9 @@ import matplotlib as mpl
 import torch
 from scipy.sparse.csgraph import dijkstra
 pysta.reload()
-from pysta.utils import compute_model_support
 from pysta import basedir
 from scipy.ndimage import gaussian_filter1d
+from matplotlib import patches
 ext = ".pdf"
 
 #%% set font with arial .ttf file
@@ -23,29 +23,31 @@ fm.fontManager.addfont(font_path)
 mpl.rcParams['font.family'] = "Arial"
 mpl.rcParams['font.size'] = 8
 
-#%% generate little schematic of relative vs absolute
+    
+#%% plot scaffolds with trajectories on top
+istarts = [0, 1, 0]
+for ilocs, locs in enumerate(all_locs):
+    locs = np.array(locs).T.astype(float)
 
-locs = np.arange(6)
-neurals = np.arange(4)
-sequence_colors = [plt.get_cmap("viridis")(iind / (len(neurals)-0.5)) for iind in range(len(neurals))][::-1]
-for i in range(2):
-    plt.figure(figsize = (1.2, 0.9))
-    for t in neurals:
-        perf = np.zeros(len(locs))
-        if i == 0:
-            perf[locs == t+2] = 1.0
-        else:
-            perf[locs == 3] = 0.9**t
-        perf = perf + (1-perf.sum())/len(perf)
-        plt.plot(locs, perf, lw = 2, color = sequence_colors[int(t)])
-    plt.gca().spines[['right', 'top']].set_visible(False)
-    plt.xticks([])
-    plt.yticks([])
-    plt.savefig(f"{pysta.basedir}/figures/schematics/decoding_support_schematic{i}{ext}", bbox_inches = "tight", transparent = True)
+    plt.figure(figsize = (1.43,1.43))
+    ax = plt.gca()
+    pysta.plot_utils.plot_maze_scaffold(adjacency, ax = ax, s = 450, lw = 7)
+
+    smooth_locs = gaussian_filter1d(np.repeat(locs, 6, axis = -1), 2, axis = -1, mode = "nearest").T
+    chunks = np.array_split(np.arange(len(smooth_locs)), locs.shape[-1])
+    cols = [plt.get_cmap("viridis")(0.7*(i)/5 + 0.40) for i in range(5)][::-1][istarts[ilocs]:]
+    for ichunk, chunk in enumerate(chunks):
+        if ichunk < len(chunks)-1:
+            chunk = np.concatenate([chunk, chunks[ichunk+1][:1]])
+        ax.plot(smooth_locs[chunk, 0], smooth_locs[chunk, 1], color = cols[ichunk], lw = 5)
+
+    #ax.plot(smooth_locs[:, 0], smooth_locs[:,1])
+    ax.axis("off")
+    plt.savefig(f"{basedir}/figures/rnn_decoding/maze_scaffold{ilocs}{ext}", bbox_inches = "tight", transparent = True)
     plt.show()
     plt.close()
-
-
+    
+    
 # %% plot some example representations
 
 from pysta.utils import schematic_walls as walls
@@ -85,32 +87,13 @@ for ipath, locs in enumerate(all_locs):
     plt.show()
     plt.close()
     
-    
-    
-#%% plot scaffolds with trajectories on top
-istarts = [0, 1, 0]
-for ilocs, locs in enumerate(all_locs):
-    locs = np.array(locs).T.astype(float)
-
-    plt.figure(figsize = (1.43,1.43))
-    ax = plt.gca()
-    pysta.plot_utils.plot_maze_scaffold(adjacency, ax = ax, s = 450, lw = 7)
-
-    smooth_locs = gaussian_filter1d(np.repeat(locs, 6, axis = -1), 2, axis = -1, mode = "nearest").T
-    chunks = np.array_split(np.arange(len(smooth_locs)), locs.shape[-1])
-    cols = [plt.get_cmap("viridis")(0.7*(i)/5 + 0.40) for i in range(5)][::-1][istarts[ilocs]:]
-    for ichunk, chunk in enumerate(chunks):
-        if ichunk < len(chunks)-1:
-            chunk = np.concatenate([chunk, chunks[ichunk+1][:1]])
-        ax.plot(smooth_locs[chunk, 0], smooth_locs[chunk, 1], color = cols[ichunk], lw = 5)
-
-    #ax.plot(smooth_locs[:, 0], smooth_locs[:,1])
-    ax.axis("off")
-    plt.savefig(f"{basedir}/figures/rnn_decoding/maze_scaffold{ilocs}{ext}", bbox_inches = "tight", transparent = True)
-    plt.show()
-    plt.close()
 
 #%% plot an example RNN
+
+
+styleA = "Simple, tail_width=0.5, head_width=3.5, head_length=4"
+styleB = "|-|, widthB=2.7, angleA=0, widthA=0, angleB=0"
+
 
 cell_locs = np.array([
     [3,8],
@@ -166,8 +149,7 @@ plt.savefig(f"{basedir}/figures/rnn_decoding/rnn_schematic{ext}", bbox_inches = 
 plt.show()
 plt.close()
     
-# %%
- 
+    
  #%% and plot an example 'space-by-time' reward function
 
 np.random.seed(0)
@@ -178,8 +160,8 @@ env.walls[0, ...] = torch.tensor(walls[...])
 
 path = [1,4,3,6]
 optimal = False
+# make sure to sample a value function that shares the same optimal path
 while not optimal:
-    #print("resampling")
     env.reset()
     vs = env.vs[0].detach().numpy()
     optimal = True

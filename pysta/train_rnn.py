@@ -42,7 +42,7 @@ def main_train(kwargs):
     # instantiate optimizer and some variables to keep track of
     optim = torch.optim.Adam(rnn.parameters(), lr=kwargs["lrate"])
     all_losses, all_accs = [], []
-    best_acc = 0.0
+    best_loss = np.inf
 
     # 5 sec to check
     time.sleep(5e-2)
@@ -57,17 +57,17 @@ def main_train(kwargs):
                 loss, acc = rnn.eval(num_eval = kwargs["num_eval"])
                 all_losses.append(loss)
                 all_accs.append(acc)
-                if acc > best_acc:
-                    best_acc = acc
+                if loss <= best_loss:
+                    best_loss = loss
                     if kwargs["save_results"]:
                         torch.save(rnn, f"{savename}_best.pt")
                 
                 losses = [np.round(l.item(), 4) for l in [rnn.acc_loss, rnn.ent_loss, rnn.weight_loss, rnn.rate_loss]]
-                print(epoch, loss, acc, np.round((time.time() - t0)/60, 2), best_acc, losses)
+                print(epoch, loss, acc, np.round((time.time() - t0)/60, 2), best_loss losses)
                 sys.stdout.flush()
                 
                 if kwargs["save_results"]:
-                    pickle.dump({"epoch": epoch, "loss": all_losses, "accs": all_accs, "rnn": rnn, "best_acc": best_acc, "kwargs": kwargs, "optim": optim}, open(f"{savename}.p", "wb"))
+                    pickle.dump({"epoch": epoch, "loss": all_losses, "accs": all_accs, "rnn": rnn, "best_loss": best_loss, "kwargs": kwargs, "optim": optim}, open(f"{savename}.p", "wb"))
                 
         optim.zero_grad() # reset gradient accumulator
         loss = rnn.forward() # compute loss
@@ -75,7 +75,7 @@ def main_train(kwargs):
         optim.step() # update parameters
         
     if kwargs["save_results"]:
-        pickle.dump({"epoch": epoch, "loss": all_losses, "accs": all_accs, "rnn": rnn, "best_acc": best_acc, "kwargs": kwargs, "optim": optim}, open(f"{savename}.p", "wb"))
+        pickle.dump({"epoch": epoch, "loss": all_losses, "accs": all_accs, "rnn": rnn, "best_loss": best_loss, "kwargs": kwargs, "optim": optim}, open(f"{savename}.p", "wb"))
         torch.save(rnn, f"{savename}_final.pt")
 
     return rnn

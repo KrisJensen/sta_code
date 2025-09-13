@@ -11,6 +11,7 @@ pysta.reload()
 import os
 import matplotlib as mpl
 from pysta import basedir
+from scipy.spatial.transform import Rotation
 ext = ".pdf"
 basefigdir = f"{basedir}/figures/rnn_connectivity/"
 
@@ -25,7 +26,6 @@ mpl.rcParams['font.size'] = 8
 
 # %% plot example projections
 
-
 np.random.seed(8)
 ts = np.linspace(0,1, 101)
 
@@ -34,12 +34,11 @@ L = np.linalg.cholesky(K + np.eye(len(K))*1e-10)
 
 X = L @ np.random.normal(0, 1, (len(ts), 2))
 X[:, 1] *= -1
-
 Z1 = np.concatenate([ts[:, None], X], axis = -1)
 
-
-ax = plt.figure().add_subplot(projection='3d')
-ax.plot3D(Z1[:, 0], Z1[:, 1], Z1[:, 2], lw = 5)
+figsize = (1.15, 1.15)
+ax = plt.figure(figsize = figsize).add_subplot(projection='3d')
+ax.plot3D(Z1[:, 0], Z1[:, 1], Z1[:, 2], lw = 2.5)
 ax.set_xlabel("t")
 ax.set_ylabel("x")
 ax.set_zlabel("y")
@@ -48,52 +47,47 @@ delta = zmax - zmin
 ax.set_zlim(zmin - 0.1*delta, zmax + 0.1*delta)
 ax.axis("off")
 ax.view_init(20, -75, 0)
-#plt.savefig(f"{basedir}/figures/rnn_connectivity/traj3D_aligned{ext}", transparent = True, bbox_inches = "tight")
+plt.savefig(f"{basedir}/figures/rnn_connectivity/traj3D_aligned{ext}", transparent = True, bbox_inches = "tight")
 ax.axis("on")
 plt.show()
+plt.close()
 
-ax = plt.figure().add_subplot(projection='3d')
-ax.plot3D(Z1[:, 0], Z1[:, 1], 0*Z1[:, 2]+zmin-0.099*delta, lw = 1)
+ax = plt.figure(figsize = figsize).add_subplot(projection='3d')
+ax.plot3D(Z1[:, 0], Z1[:, 1], 0*Z1[:, 2]+zmin-0.099*delta, lw = 0.6)
 ax.set_zlim(zmin - 0.1*delta, zmax + 0.1*delta)
 ax.axis("off")
 ax.view_init(20, -75, 0)
-#plt.savefig(f"{basedir}/figures/rnn_connectivity/traj2D_aligned{ext}", transparent = True, bbox_inches = "tight")
+plt.savefig(f"{basedir}/figures/rnn_connectivity/traj2D_aligned{ext}", transparent = True, bbox_inches = "tight")
 ax.axis("on")
 plt.show()
+plt.close()
 
-from scipy.spatial.transform import Rotation
 q = np.random.normal(0, 1, 4)
 q = q / np.sqrt(np.sum(q**2))
-print(np.sum(q**2))
 rot = Rotation.from_quat(q)
 Z2 = (rot.as_matrix() @ Z1.T).T
 
-
-ax = plt.figure().add_subplot(projection='3d')
-ax.plot3D(Z2[:, 0], Z2[:, 1], Z2[:, 2], lw = 5)
+ax = plt.figure(figsize = figsize).add_subplot(projection='3d')
+ax.plot3D(Z2[:, 0], Z2[:, 1], Z2[:, 2], lw = 2.5)
 zmin, zmax = np.min(Z2[:, 2]), np.max(Z2[:, 2])
 delta = zmax - zmin
 ax.set_zlim(zmin - 0.1*delta, zmax + 0.1*delta)
 ax.axis("off")
 ax.view_init(20, -75, 0)
-#plt.savefig(f"{basedir}/figures/rnn_connectivity/traj3D_nonaligned{ext}", transparent = True, bbox_inches = "tight")
+plt.savefig(f"{basedir}/figures/rnn_connectivity/traj3D_nonaligned{ext}", transparent = True, bbox_inches = "tight")
 ax.axis("on")
 plt.show()
+plt.close()
 
-# plt.figure(figsize = (3,2))
-# plt.plot(Z2[:, 0], Z2[:, 1])
-# ax.axis("off")
-ax = plt.figure().add_subplot(projection='3d')
-ax.plot3D(Z2[:, 0], Z2[:, 1], 0*Z2[:, 2]+zmin-0.099*delta, lw = 1)
+ax = plt.figure(figsize = figsize).add_subplot(projection='3d')
+ax.plot3D(Z2[:, 0], Z2[:, 1], 0*Z2[:, 2]+zmin-0.099*delta, lw = 0.6)
 ax.set_zlim(zmin - 0.1*delta, zmax + 0.1*delta)
 ax.axis("off")
 ax.view_init(20, -75, 0)
-#plt.savefig(f"{basedir}/figures/rnn_connectivity/traj2D_nonaligned{ext}", transparent = True, bbox_inches = "tight")
+plt.savefig(f"{basedir}/figures/rnn_connectivity/traj2D_nonaligned{ext}", transparent = True, bbox_inches = "tight")
 ax.axis("on")
 plt.show()
-
-# %%
-
+plt.close()
 
 # %% load data
 
@@ -133,8 +127,6 @@ pysta.plot_utils.plot_perspective_attractor(walls, vmap[:2],  act_cols = act_col
 
 #%% schematic weights
 
-
-                
 adj_inds = np.where(adj[ind0, :] > 0)[0]
 for aind in adj_inds:
     act_cols[1][aind] = plt.get_cmap("coolwarm")(0.95)
@@ -166,10 +158,10 @@ pysta.plot_utils.plot_perspective_attractor(walls, vmap, vmin = 0, vmax = 1,
 #%% future rewards
 
 vmin, vmax = -2.3, 1.15
-plt.figure(figsize = (2.0,2.0))
+plt.figure(figsize = (1.0, 1.0))
 ax = plt.gca()
-pysta.plot_utils.plot_flat_frame(walls, ax = ax, filename = None, vmap = rs1, cmap = "viridis", vmin = vmin, vmax = vmax, show = False)
-plt.scatter([2,], [1,], marker = ".", color = stim_col, s = 1600, zorder = 200)
+pysta.plot_utils.plot_flat_frame(walls, ax = ax, filename = None, vmap = rs1, cmap = "viridis", vmin = vmin, vmax = vmax, show = False, lw = 3.0)
+plt.scatter([2,], [1,], marker = ".", color = stim_col, s = 380, zorder = 200)
 plt.savefig(f"{basefigdir}schematic_rewards{ext}", bbox_inches = "tight", transparent = True)
 plt.show()
 plt.close()

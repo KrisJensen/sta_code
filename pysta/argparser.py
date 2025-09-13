@@ -41,7 +41,7 @@ def parse_args(**kwargs):
     parser.add_argument('--overwrite', default = 0, type = int, help = "allow overwrite of existing model of the same name")
     parser.add_argument('--eval_freq', type = int, default = 200, help = "number of batches between each instance of evaluation and model saving")
     parser.add_argument('--num_eval', type = int, default = 10, help = "number of batches to use for evaluation")
-    parser.add_argument('--num_epochs', type = int, default = 120000, help = "number of epochs to train for")
+    parser.add_argument('--num_epochs', type = int, default = 200000, help = "number of epochs to train for")
     parser.add_argument('--prefix', type = str, default = "", help = "optional prefix to the model name")
     parser.add_argument('--lrate', type = float, default = 3e-4, help = "ADAM learning rate")
     parser.add_argument('--save_results', type = int, default = 1, help = "whether to save the model")

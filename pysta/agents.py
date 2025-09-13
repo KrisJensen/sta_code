@@ -152,6 +152,7 @@ class BaseAgent(nn.Module):
                     self.action = torch.multinomial(pi, 1)[..., 0]
                 except RuntimeError:
                     print(pi.min(), pi.max(), self.pi.min(), self.pi.max(), self.logpi.min(), self.logpi.max())
+
                     pickle.dump(self, open("./temp.p", "wb"))
                     raise Error
                 
@@ -215,12 +216,9 @@ class BaseAgent(nn.Module):
             self.acc_loss = self.acc_loss + (1.0 - opt_probs).sum()
             
             # entropy loss
-            jitter = 1e-10 # add a little bit of jitter to avoid nans
+            jitter = 1e-5 # add a little bit of jitter to avoid nans
             pi_ent = (self.pi + jitter) / (1+self.pi.shape[-1] * jitter)
             self.ent_loss = self.ent_loss + self.ent_reg * (pi_ent*pi_ent.log())[not_finished, :].sum() # want to maximize entropy; minimize -H = E[pi logpi]
-    
-        ########## OLD #########
-        # self.rate_loss = self.rate_loss + self.calc_activity_reg(not_finished)  
     
         return
     
@@ -375,8 +373,6 @@ class VanillaRNN(BaseAgent):
             If True, have an additional hidden layer in the readout. Otherwise use a linear readout from the hidden state.
         """
     
-        print("##### NEW #####")
-    
         # store some model-specific parameters
         self.Nrec = Nrec
         self.nonlin_output = nonlin_output
@@ -449,7 +445,6 @@ class VanillaRNN(BaseAgent):
             # compute firing rates
             self.r = self.phi(self.z) # firing rate
             
-            ######### NEW ###########
             # update rate loss for trials that have not finished
             self.rate_loss = self.rate_loss + self.calc_activity_reg(torch.where(~self.env.finished)[0])
             

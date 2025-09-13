@@ -46,7 +46,7 @@ for iloss, loss_label in enumerate(loss_labels):
         env = short_labels[ind]
         #for ienv, env in enumerate(short_labels):
 
-        fig = plt.figure(figsize = (2.5,2.0))
+        fig = plt.figure(figsize = (1.65,1.15))
         ax = plt.gca()
 
         data = perfs[:, ind, :3][..., order] # performance of the agents
@@ -61,15 +61,18 @@ for iloss, loss_label in enumerate(loss_labels):
 
 
         ax.set_xticks(xs)
-        ax.set_xticklabels([short_labels[i] for i in order], rotation = 45, ha = "right")
+        ax.set_xticklabels([short_labels[i] for i in order], rotation = 35, ha = "right", rotation_mode="anchor")
+        ax.tick_params(axis='x', which='major', pad=2)
+        #xticks = {"static": "static", "moving": "moving", "landscape": "land-\nscape"}
+        #ax.set_xticklabels([xticks[short_labels[i]] for i in order])
 
         if ienv == 0 or iloss == 2:
-            ax.set_ylabel(ylabels[iloss], labelpad = -10)
+            ax.set_ylabel(ylabels[iloss], labelpad = -7)
             ax.set_yticks([0,1])
         else:
             ax.set_yticks([])
         
-        ax.set_ylim(0, 1.11)
+        ax.set_ylim(0, 1.06)
         if iloss == 0:
             ax.axhline(baseline, color = np.ones(3)*0.5)
         
