@@ -76,6 +76,6 @@ for size in sizes:
 
 #%% store commands
 
-pickle.dump(commands, open(f"{pysta.basedir}/slurm/commands/train_all_rnns.p", "wb"))
+pickle.dump(commands, open(f"{pysta.basedir}/slurm/commands/train_all_bioRxiv_rnns.p", "wb"))
 
 
