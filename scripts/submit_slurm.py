@@ -20,7 +20,7 @@ def slurm_submission_script(command, jobname, time = "48:00:00", mem = "32G", no
 {extra_commands}
 
 source ~/.bashrc
-conda activate pysta
+conda activate pysta2
 
 conda info
 

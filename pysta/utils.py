@@ -6,7 +6,7 @@ import os
 import pickle
 from scipy.stats import pearsonr
 
-basedir = "/ceph/behrens/kris/research/sta_code/"
+basedir = "/ceph/behrens/kris/research/sta_bioRxiv/sta_code/"
 
 
 def reload():
