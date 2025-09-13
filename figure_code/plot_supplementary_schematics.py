@@ -22,9 +22,9 @@ mpl.rcParams['font.size'] = 8
 
 locs = np.arange(6)
 neurals = np.arange(4)
-sequence_colors = [plt.get_cmap("viridis")(iind / (len(neurals)-0.5)) for iind in range(len(neurals))][::-1]
+sequence_colors = [plt.get_cmap("viridis")(iind / (len(neurals)-0.7)) for iind in range(len(neurals))][::-1]
 for i in range(2):
-    plt.figure(figsize = (1.2, 0.9))
+    plt.figure(figsize = (1.0, 0.75))
     for t in neurals:
         perf = np.zeros(len(locs))
         if i == 0:
@@ -39,3 +39,5 @@ for i in range(2):
     plt.savefig(f"{pysta.basedir}/figures/schematics/decoding_support_schematic{i}{ext}", bbox_inches = "tight", transparent = True)
     plt.show()
     plt.close()
+
+# %%

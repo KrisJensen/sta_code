@@ -59,7 +59,7 @@ def get_model_and_subs(model, seed, subspace_type):
 
 #%%
 
-models = ["WM", "STA", "STA_true", "relrew"]
+models = ["WM", "STA", "STA_true", "relrew", "egocentric"]
 ex_seed = 1
 for imodel, model in enumerate(models):
     os.makedirs(f"{basefigdir}{model}/", exist_ok = True)
@@ -88,30 +88,30 @@ for imodel, model in enumerate(models):
         num_locs = adj.shape[0]
 
         #%% plot all input weights
-
+        figsize = (3.4, 3.4)
         num_slots = 5
         Win_eff = Csub_flat @ Win # (slots, inputs)
         keep_input_inds = np.concatenate([np.arange(16), np.arange(32, 32+(num_slots-1)*16)])
-        keep_slot_inds = np.arange(num_slots*16) # keep only the first 3 slots
+        keep_slot_inds = np.arange(num_slots*16) # keep only the first 5 slots
         Win_eff_plot = Win_eff[:, keep_input_inds][keep_slot_inds, :]
         xticks = ["location"]+["R("+r"$\delta = $"+f"{i})" for i in range(1, num_slots)] #, "R("+r"$\delta = 2$"+")"]
             
         pysta.plot_utils.plot_slot_connectivity(Win_eff_plot, num_locs, filename = f"{basefigdir}{model}/input_weights{substr}{ext}", show = True,
-                                                xticks = xticks, figsize = (3,3),
+                                                xticks = xticks, figsize = figsize,
                                                 yticks = range(1, num_slots+1), ylabel = "slot number", transparent = True)
 
         #%% plot all output weights
         Wout_eff = Wout @ Csub_flat.T # (output, slots)
         yticks = [f"slot {i}" for i in range(1, num_slots+1)]
         pysta.plot_utils.plot_slot_connectivity(Wout_eff[:, keep_slot_inds].T, num_locs, xtickrot=0, xticks = [], xlabel = "output", yticks = yticks,
-                                                filename = f"{basefigdir}{model}/output_weights{substr}{ext}", show = True, figsize = (3,3), ylabel = None, transparent = True)
+                                                filename = f"{basefigdir}{model}/output_weights{substr}{ext}", show = True, figsize = figsize, ylabel = None, transparent = True)
     
     
         #%% all recurrent weights
 
         Wrec_eff = Csub_flat @ Wrec @ Csub_flat.T # (slots, slots)
         Wrec_eff_plot = Wrec_eff[keep_slot_inds, :][:, keep_slot_inds] # (slots, slots)
-        pysta.plot_utils.plot_slot_connectivity(Wrec_eff, num_locs, filename = f"{basefigdir}{model}/recurrent_weights{substr}{ext}", show = True, figsize = (3,3), vmin = 0.2, vmax = 0.97, transparent = True,
+        pysta.plot_utils.plot_slot_connectivity(Wrec_eff_plot, num_locs, filename = f"{basefigdir}{model}/recurrent_weights{substr}{ext}", show = True, figsize = figsize, vmin = 0.2, vmax = 0.97, transparent = True,
                                                 yticks = [str(i) for i in range(1, num_slots+1)], xticks = [str(i) for i in range(1, num_slots+1)], xlabel = "input slot", ylabel = "output slot", xtickrot = 0)
 
 
@@ -121,16 +121,17 @@ for imodel, model in enumerate(models):
         keep_slot_inds = np.arange(num_slots*16) # keep only the first 3 slots
         Win_eff_plot = Win_eff[:, keep_input_inds][keep_slot_inds, :]
         
-        if model in ["WM", "relrew", "egocenrtic"]:
+        if model in ["WM", "relrew", "egocentric"]:
             xlabel = "input"
             xticks = xticks[:num_slots]
         else:
             xticks = []
             xlabel = None
 
+        figsize = (3.5, 2) if model in ["relrew", "egocentric"] else (2.65,1.33)
         for irow, Win_row in enumerate(Win_eff_plot.reshape(num_slots,num_locs,num_slots*num_locs)):
             ax = pysta.plot_utils.plot_slot_connectivity(Win_row, num_locs, xticks = xticks, xtickrot=0, yticks = [],
-                                                        show = False, figsize = (2.65,1.33), transparent = True)
+                                                        show = False, figsize = figsize, transparent = True)
             plt.xlabel(xlabel, labelpad = +1)
             plt.ylabel(f"slot {irow}", labelpad = 2.5)
             ax.tick_params(axis='x', which='major', pad=2, length = 0)

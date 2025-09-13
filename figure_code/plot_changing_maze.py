@@ -27,7 +27,7 @@ mpl.rcParams['font.size'] = 8
 seeds = [21,22,23,24,25]
 model_names = [f"MazeEnv_L4_max6/landscape_changing-rew_dynamic-rew_changing-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout/model{seed}" for seed in seeds]
 model_names_ref = [name.replace("changing-maze", "constant-maze") for name in model_names]
-model_names = [f"MazeEnv_L4_max6/landscape_changing-rew_dynamic-rew_changing-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout/old_model{seed}" for seed in [21,23,24,25]]
+#model_names = [f"MazeEnv_L4_max6/landscape_changing-rew_dynamic-rew_changing-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout/old_model{seed}" for seed in [21,23,24,25]]
 datadirs = [f"{basedir}/data/rnn_analyses/" + "_".join(model_name.split("/")) + "_" for model_name in model_names]
 datadirs_ref = [f"{basedir}/data/rnn_analyses/" + "_".join(model_name.split("/")) + "_" for model_name in model_names_ref]
 
@@ -63,7 +63,7 @@ for ienv, env in enumerate([0, 3]):
 
 #%% load data on effective connectivity
 
-changing_maze_results = pickle.load(open(f"{datadirs[1]}correlation_results.pickle", "rb")) # load data for example agent
+changing_maze_results = pickle.load(open(f"{datadirs[2]}correlation_results.pickle", "rb")) # load data for example agent
 walls = changing_maze_results["wall_configs"] # the walls used in the trials
 
 #%% plot two examples mazes
@@ -124,8 +124,6 @@ countst, _, _ = plt.hist(true_cors, bins = bins_true, label = "same maze", densi
 countsf, _, _ = plt.hist(false_cors, bins = bins_false, label = "different maze", density = True, color = cols[1])
 
 ymin, ymax = 0, np.ceil(max(np.amax(countsf), np.amax(countst))/5)*5
-#plt.axvline(mtrue, color = "k", lw = 3, label = "same maze")
-#plt.fill_between([mtrue-2*strue, mtrue+2*strue], [ymin, ymin], [ymax, ymax], color = "k", alpha = 0.3, linewidth = 0)
 plt.ylim(ymin, ymax)
 plt.xlabel("correlation of W with A")
 plt.ylabel("frequency")
@@ -207,14 +205,14 @@ mtrue, strue = np.mean(true_cors), np.std(true_cors)
 bins_false = np.linspace(np.amin(false_cors)-1e-5, np.amax(false_cors)+1e-5, 12)
 bins_true = np.linspace(np.amin(true_cors)-1e-5, np.amax(true_cors)+1e-5, 6)
 
-plt.figure(figsize = (2.5,1.5))
+plt.figure(figsize = (2.3,1.15))
 countst, _, _ = plt.hist(true_cors, bins = bins_true, label = "same maze", density = True, color = cols[0])
 countsf, _, _ = plt.hist(false_cors, bins = bins_false, label = "different maze", density = True, color = cols[1])
 
 ymin, ymax = 0, np.ceil(max(np.amax(countsf), np.amax(countst))/5)*5
 plt.ylim(ymin, ymax)
-plt.xlabel(r"subspace correlation")
-plt.ylabel("frequency")
+plt.xlabel(r"subspace correlation", labelpad = 3.5)
+plt.ylabel("frequency", labelpad = 2.5)
 plt.yticks([])
 plt.legend(frameon = False)
 plt.gca().spines[['right', 'top']].set_visible(False)
@@ -223,24 +221,138 @@ plt.show()
 plt.close()
 
 
+# %% plot wall input to locations or non-locations in the subspace
 
-#%%
+analysis_results = [pickle.load(open(f"{datadir}wall_to_transition_result.pickle","rb")) for datadir in datadirs]     
+# analysis_results = [pickle.load(open(f"{datadir}wall_to_transition_result.pickle","rb")) for datadir in datadirs_ref]             
+
+
+cols = {"stim": (0.35, 0.65, 0.2),
+          "strong_ex": plt.get_cmap("coolwarm")(0.95), 
+          "weak_ex": plt.get_cmap("coolwarm")(0.55),
+          "strong_inh": plt.get_cmap("coolwarm")(0.05),
+          "weak_inh": plt.get_cmap("coolwarm")(0.35),
+          "neutral": plt.get_cmap("coolwarm")(0.44),}
+
+
+
+#%% first plot effective connectivity
+
+
+endpoints, adjacents, others = [np.array([result[key] for result in analysis_results]) for key in ["connection_to_endpoint", "connection_to_adjacent", "connection_to_other"]]
+
+data = np.array([endpoints, adjacents, others]).mean(-1).T
+plotcols = [cols[key] for key in ["strong_ex", "weak_inh"]] + [np.zeros(3)+0.6]
+xticks = ["consistent", "adjacent", "other"]
+
+figsize = (2.1,1.6)
+plt.figure(figsize = figsize)
+
+xs, ms, ss = np.arange(data.shape[1]), np.mean(data, axis = 0), np.std(data, axis = 0)
+jitters = np.random.normal(0, 0.1, len(data)) # jitter for plotting
+plt.bar(xs, ms, yerr = ss, color = plotcols, capsize = 3, error_kw={'elinewidth': 2, "markeredgewidth": 2})
+for idata, datapoints in enumerate(data.T):
+    plt.scatter(jitters+xs[idata], datapoints, marker = ".", color = "k", alpha = 0.5, linewidth = 0.0, s = 80)
+    
+plt.xticks(xs, xticks)#, rotation = 45, ha = "right")
+plt.ylabel("effective connectivity")
+plt.yticks([0,1,2])
+plt.axhline(0.0, color = "k", lw = 1)
+plt.gca().spines[['right', 'top']].set_visible(False)
+plt.savefig(f"{basefigdir}effective_transition_connectivity{ext}", bbox_inches = "tight", transparent = True)
+plt.show()
+plt.close()
+
+#%% then wall input to different transitions within subspace
+
+walls, adjacents, others = [np.array([result[key] for result in analysis_results]).mean(-1) for key in ["input_to_wall", "input_to_adjacent", "input_to_other"]]
+
+plotcols2 = plotcols
+plotcols2[0] = cols["strong_inh"]
+data = np.array([walls, adjacents, others]).T
+
+plt.figure(figsize = figsize)
+
+xs, ms, ss = np.arange(data.shape[1]), np.mean(data, axis = 0), np.std(data, axis = 0)
+jitters = np.random.normal(0, 0.1, len(data)) # jitter for plotting
+plt.bar(xs, ms, yerr = ss, color = plotcols2, capsize = 3, error_kw={'elinewidth': 2, "markeredgewidth": 2})
+for idata, datapoints in enumerate(data.T):
+    plt.scatter(jitters+xs[idata], datapoints, marker = ".", color = "k", alpha = 0.5, linewidth = 0.0, s = 80)
+    
+plt.ylabel("wall input projection")
+#plt.xticks([0, 1], ["wall-adjacent", "reference"], rotation = 45, ha = "right")
+plt.xticks(xs, ["wall", "adjacent", "other"])
+plt.axhline(0.0, color = "k", lw = 1)
+plt.gca().spines[['right', 'top']].set_visible(False)
+plt.savefig(f"{basefigdir}wall_to_transition_input{ext}", bbox_inches = "tight", transparent = True)
+plt.show()
+plt.close()
+
+
+#%% plot learning curves
+
+
+epochs, epochs_ref, accs, accs_ref = [], [], [], []
+
+for i in range(len(model_names)):
+    training_result = pickle.load(open(f"{basedir}/models/{model_names[i]}.p", "rb"))
+    training_result_ref = pickle.load(open(f"{basedir}/models/{model_names_ref[i]}.p", "rb"))
+    accs.append(training_result["accs"])
+    epochs.append(np.linspace(0, training_result["epoch"], len(accs[-1])))
+    accs_ref.append(training_result_ref["accs"])
+    epochs_ref.append(np.linspace(0, training_result_ref["epoch"], len(accs_ref[-1])))
+
+maxlen = np.amin([len(epoch) for epoch in epochs])
+epochs, accs = [np.array([arr[:maxlen] for arr in data]) for data in [epochs, accs]]
+maxlen = np.amin([len(epoch) for epoch in epochs_ref])
+epochs_ref, accs_ref = [np.array([arr[:maxlen] for arr in data]) for data in [epochs_ref, accs_ref]]
+
+plt.figure(figsize = (2.1,1.5))
+labels = ["changing maze", "fixed maze"]
+for idata, data in enumerate([(epochs, accs), (epochs_ref, accs_ref)]):
+    xs = np.mean(data[0], 0)
+    m, s = np.mean(data[1], 0), np.std(data[1], 0)
+    plt.plot(xs, m, label = labels[idata])
+    plt.fill_between(xs, m-s, m+s, alpha = 0.2, linewidth = 0)
+
+plt.legend(frameon = False)
+plt.gca().spines[['right', 'top']].set_visible(False)
+plt.xlim(-2000, 120000)
+plt.xticks(range(0, 120001, 40000))
+plt.xlabel("epoch", labelpad = 3.5)
+plt.ylabel("accuracy", labelpad = 2.5)
+plt.savefig(f"{basefigdir}training_curves{ext}", bbox_inches = "tight", transparent = True)
+plt.show()
+plt.close()
+
+
+#%% plot model support
+
 model_results = [pickle.load(open(f"{datadir}decoder_generalization_performance.pickle", "rb")) for datadir in datadirs]
     
 all_res = np.array([pysta.utils.compute_model_support(result) for result in model_results])
-model_scores = all_res[..., 1] - all_res[..., 0] # performance when satisfing cond minus performance when not
-#model_scores = [np.mean(res[1]) - np.mean(res[0]) for res in all_res] # performance when satisfing cond minus performance when not
-mean, std = np.mean(model_scores, axis = 0), np.std(model_scores, axis = 0)
-                    
-xs = np.arange(len(mean))
-plt.figure(figsize = (1.6,2.0))
-plt.bar(xs, mean, yerr = std)
+data = all_res[..., 1] - all_res[..., 0] # performance when satisfing cond minus performance when not
+
+
+xs, mean, std = np.arange(data.shape[1]), np.mean(data, axis = 0), np.std(data, axis = 0)
+jitters = np.random.normal(0, 0.1, len(data)) # jitter for plotting
+
+plt.figure(figsize = (1.3, 1.5))
+plt.bar(xs, mean, yerr = std, capsize = 3, error_kw={'elinewidth': 2, "markeredgewidth": 2})
+for idata, datapoints in enumerate(data.T):
+    plt.scatter(jitters+xs[idata], datapoints, marker = ".", color = "k", alpha = 0.5, linewidth = 0.0, s = 80)
+
 plt.axhline(0.0, color = "k")
 plt.gca().spines[['right', 'top']].set_visible(False)
-plt.yticks([-0.1, 0.1, 0.3, 0.5, 0.7])
+
+plt.yticks(np.arange(0, 0.81, 0.2))
+plt.ylim(-0.08, 0.8)
 plt.ylabel("pattern overlap")
-plt.xticks(xs, ["relative", "absolute"], rotation = 45, ha ="right") 
-plt.ylim(-0.1, 0.7)
+
+plt.xticks(xs, ["relative", "absolute"], rotation = 45, ha ="right", rotation_mode="anchor")
+plt.gca().tick_params(axis='x', which='major', pad=2)
+plt.ylabel("pattern overlap")
+
 plt.savefig(f"{basefigdir}decoding_model_support{ext}", bbox_inches = "tight", transparent = True)
 plt.show()
 plt.close()
@@ -280,102 +392,37 @@ for idata, data_type in enumerate(["", "transition_"]):
         ex_xs.append(deltas)
 
 
-    plt.figure(figsize = (2, 1.5))
+    plt.figure(figsize = (2.1, 1.5))
     for i in range(2):
         xs, ms, ss = plan_xs[i], np.mean(plan_perfs[i], 0), np.std(plan_perfs[i], 0)
         plt.plot(xs, ms)
         plt.fill_between(xs, ms-ss, ms+ss, alpha = 0.2)
-    plt.xlabel("time in future")
+    plt.xlabel("time in future", labelpad = 3.5)
     plt.ylabel("accuracy", labelpad = -5)
     plt.yticks([0, 1])
     plt.ylim(0, 1)
+    plt.xlim(xs[0], xs[-1])
     plt.gca().spines[['right', 'top']].set_visible(False)
     plt.savefig(f"{basefigdir}future_{labels[idata]}_planning{ext}", bbox_inches = "tight", transparent = True)
     plt.show()
     plt.close()
 
-    plt.figure(figsize = (2.3, 1.5))
+    plt.figure(figsize = (2.1, 1.5))
     for i in range(2):
         xs, ms, ss = ex_xs[i], np.mean(ex_perfs[i], 0), np.std(ex_perfs[i], 0)
         ms[xs == 0], ss[xs == 0] = np.nan, np.nan
         plt.plot(xs, ms)
         plt.fill_between(xs, ms-ss, ms+ss, alpha = 0.2)
     plt.fill_between([-1, +1], [0, 0], [1,1], color = "k", alpha = 0.07, zorder = -10, linewidth = 0)
-    plt.xlabel("relative time")
+    plt.xlabel("actions from now", labelpad = 3.5)
     plt.ylabel("accuracy", labelpad = -5)
     plt.yticks([0, 1])
     plt.ylim(0, 1)
+    plt.xticks(range(xs[0], xs[-1]+1, 2))
+    plt.xlim(xs[0], xs[-1])
     plt.gca().spines[['right', 'top']].set_visible(False)
     plt.savefig(f"{basefigdir}future_{labels[idata]}_execution{ext}", bbox_inches = "tight", transparent = True)
     plt.show()
     plt.close()
-
-
-# %% now plot wall input to locations or non-locations in the subspace
-
-analysis_results = [pickle.load(open(f"{datadir}wall_to_transition_result.pickle","rb")) for datadir in datadirs]     
-# analysis_results = [pickle.load(open(f"{datadir}wall_to_transition_result.pickle","rb")) for datadir in datadirs_ref]             
-
-
-cols = {"stim": (0.35, 0.65, 0.2),
-          "strong_ex": plt.get_cmap("coolwarm")(0.95), 
-          "weak_ex": plt.get_cmap("coolwarm")(0.55),
-          "strong_inh": plt.get_cmap("coolwarm")(0.05),
-          "weak_inh": plt.get_cmap("coolwarm")(0.35),
-          "neutral": plt.get_cmap("coolwarm")(0.44),}
-
-
-
-#%% first plot effective connectivity
-
-
-endpoints, adjacents, others = [np.array([result[key] for result in analysis_results]) for key in ["connection_to_endpoint", "connection_to_adjacent", "connection_to_other"]]
-
-data = np.array([endpoints, adjacents, others]).mean(-1).T
-plotcols = [cols[key] for key in ["strong_ex", "weak_inh"]] + [np.zeros(3)+0.6]
-xticks = ["consistent", "adjacent", "other"]
-
-plt.figure(figsize = (2.75,2.1))
-
-xs, ms, ss = np.arange(data.shape[1]), np.mean(data, axis = 0), np.std(data, axis = 0)
-jitters = np.random.normal(0, 0.1, len(data)) # jitter for plotting
-plt.bar(xs, ms, yerr = ss, color = plotcols, capsize = 3, error_kw={'elinewidth': 2, "markeredgewidth": 2})
-for idata, datapoints in enumerate(data.T):
-    plt.scatter(jitters+xs[idata], datapoints, marker = ".", color = "k", alpha = 0.5, linewidth = 0.0, s = 80)
-    
-plt.xticks(xs, xticks)#, rotation = 45, ha = "right")
-plt.ylabel("effective connectivity")
-plt.yticks([0,1,2])
-plt.axhline(0.0, color = "k", lw = 1)
-plt.gca().spines[['right', 'top']].set_visible(False)
-plt.savefig(f"{basefigdir}effective_transition_connectivity{ext}", bbox_inches = "tight", transparent = True)
-plt.show()
-plt.close()
-
-#%% then wall input to different transitions within subspace
-
-walls, adjacents, others = [np.array([result[key] for result in analysis_results]).mean(-1) for key in ["input_to_wall", "input_to_adjacent", "input_to_other"]]
-
-plotcols2 = plotcols
-plotcols2[0] = cols["strong_inh"]
-data = np.array([walls, adjacents, others]).T
-
-plt.figure(figsize = (2.75,2.1))
-
-xs, ms, ss = np.arange(data.shape[1]), np.mean(data, axis = 0), np.std(data, axis = 0)
-jitters = np.random.normal(0, 0.1, len(data)) # jitter for plotting
-plt.bar(xs, ms, yerr = ss, color = plotcols2, capsize = 3, error_kw={'elinewidth': 2, "markeredgewidth": 2})
-for idata, datapoints in enumerate(data.T):
-    plt.scatter(jitters+xs[idata], datapoints, marker = ".", color = "k", alpha = 0.5, linewidth = 0.0, s = 80)
-    
-plt.ylabel("wall input projection")
-#plt.xticks([0, 1], ["wall-adjacent", "reference"], rotation = 45, ha = "right")
-plt.xticks(xs, ["wall", "adjacent", "other"])
-plt.axhline(0.0, color = "k", lw = 1)
-plt.gca().spines[['right', 'top']].set_visible(False)
-plt.savefig(f"{basefigdir}wall_to_transition_input{ext}", bbox_inches = "tight", transparent = True)
-plt.show()
-plt.close()
-
 
 # %%

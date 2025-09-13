@@ -29,16 +29,16 @@ basenames = {"WM": "MazeEnv_L4_max6_landscape_changing-rew_dynamic-rew_constant-
              "relrew": "MazeEnv_L4_max6_landscape_changing-rew_dynamic-rew_constant-maze_allo_relrew_plan5-6-7_VanillaRNN_iter9-10-11_tau5.0_opt_N800_linout_model",
             "egocentric": "MazeEnv_L4_max6_landscape_changing-rew_dynamic-rew_constant-maze_ego_planrew_plan5-6-7_VanillaRNN_iter10_tau5.0_opt_N800_linout_model",}
 
-#%% plot decoding performance crossvalidated across location but not generalized
-
-#%% plot figures
 all_planning_decoding = {}
 all_execution_decoding = {}
 all_scores = {}
 all_time = {}
 
-figsize = (1.8, 1.5)
-models = ["WM", "STA", "DP", "relrew"]
+figsize = (2.0, 1.25)
+models = ["WM", "STA", "DP", "relrew", "egocentric"]
+
+#%% plot figures
+
 for imodel, model in enumerate(models):
 
     #%%
@@ -55,9 +55,10 @@ for imodel, model in enumerate(models):
     #%%
     
     # plot result
-    sequence_colors = [plt.get_cmap("viridis")(iind / (len(mean_neural)-0.5)) for iind in range(len(mean_neural))][::-1]
-    pysta.plot_utils.plot_prediction_result(mean_nongen_scores, mean_neural, mean_loc, cols = sequence_colors, figsize = figsize, ymax = 1.0,
-                                            error = std_nongen_scores, show = False, ts_train = None, xticks = range(6), yticks = [0, 1], labelpad = -5)
+    plot_inds = np.arange(len(mean_neural))[2:-1]
+    sequence_colors = [plt.get_cmap("viridis")(iind / (len(plot_inds)-0.7)) for iind in range(len(plot_inds))][::-1]
+    pysta.plot_utils.plot_prediction_result(mean_nongen_scores[plot_inds, :], mean_neural[plot_inds], mean_loc, cols = sequence_colors, figsize = figsize, ymax = 1.07,
+                                            error = std_nongen_scores[plot_inds, :], show = False, ts_train = None, xticks = range(6), yticks = [0, 1], labelpad = -5)
     
 
     if model in ["DP", "egocentric", "relrew"]:
@@ -128,7 +129,7 @@ for imodel, model in enumerate(models):
     all_time_steps = np.array(all_time_steps).mean(0)
     all_accs_by_target = np.array(all_accs_by_target)
 
-    plt.figure(figsize = (1.6, 1.5))
+    plt.figure(figsize = figsize)
     plt.plot(all_time_steps, all_accs_by_target.mean(0))
     plt.xlim(all_time_steps[0], all_time_steps[-1])
     plt.ylim(0, 1)
@@ -179,8 +180,8 @@ for imodel, model in enumerate(models):
     # plot the result
     ts_train = (neural_time, loc_time)
     #ts_train = None
-    pysta.plot_utils.plot_prediction_result(mean_scores, mean_neural, mean_loc, xticks = xticks, xlabel = xlabel, cols = sequence_colors, figsize = figsize, yticks = [0, 1],
-                                            ymax = 1.0, error = std_scores, ts_train = ts_train, show = True, labelpad = -5,
+    pysta.plot_utils.plot_prediction_result(mean_scores[plot_inds, :], mean_neural[plot_inds], mean_loc, xticks = xticks, xlabel = xlabel, cols = sequence_colors, figsize = figsize, yticks = [0, 1],
+                                            ymax = 1.07, error = std_scores[plot_inds, :], ts_train = ts_train, show = True, labelpad = -5,
                                             filename = f"{basedir}/figures/rnn_decoding/{model}_decoding_gen_{neural_time}_{loc_time}{ext}")
 
 
@@ -189,21 +190,27 @@ for imodel, model in enumerate(models):
     pysta.reload()
 
     all_res = np.array([compute_model_support(result) for result in model_results])
-    model_scores = all_res[..., 1] - all_res[..., 0] # performance when satisfing cond minus performance when not
+    data = all_res[..., 1] - all_res[..., 0] # performance when satisfing cond minus performance when not
 
-    mean, std = np.mean(model_scores, axis = 0), np.std(model_scores, axis = 0)
-                        
-    xs = np.arange(len(mean))
-    plt.figure(figsize = (1.2,1.5))
-    plt.bar(xs, mean, yerr = std)
+
+    xs, mean, std = np.arange(data.shape[1]), np.mean(data, axis = 0), np.std(data, axis = 0)
+    jitters = np.random.normal(0, 0.1, len(data)) # jitter for plotting
+    
+    plt.figure(figsize = (1.3, figsize[1]))
+    plt.bar(xs, mean, yerr = std, capsize = 3, error_kw={'elinewidth': 2, "markeredgewidth": 2})
+    for idata, datapoints in enumerate(data.T):
+        plt.scatter(jitters+xs[idata], datapoints, marker = ".", color = "k", alpha = 0.5, linewidth = 0.0, s = 80)
+            
     plt.axhline(0.0, color = "k")
     plt.gca().spines[['right', 'top']].set_visible(False)
 
     plt.yticks(np.arange(0, 0.81, 0.2))
+    plt.ylim(-0.08, 0.8)
     plt.ylabel("pattern overlap")
         
-    if model in ["DP", "egocentric", "relrew", "WM"]:
-        plt.xticks(xs, ["relative", "absolute"], rotation = 45, ha ="right")
+    if model in ["DP", "egocentric", "relrew"]:
+        plt.xticks(xs, ["relative", "absolute"], rotation = 45, ha ="right", rotation_mode="anchor")
+        plt.gca().tick_params(axis='x', which='major', pad=2)
         plt.ylabel("pattern overlap")
     else:
         plt.xticks([])
