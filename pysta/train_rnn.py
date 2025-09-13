@@ -63,7 +63,7 @@ def main_train(kwargs):
                         torch.save(rnn, f"{savename}_best.pt")
                 
                 losses = [np.round(l.item(), 4) for l in [rnn.acc_loss, rnn.ent_loss, rnn.weight_loss, rnn.rate_loss]]
-                print(epoch, loss, acc, np.round((time.time() - t0)/60, 2), best_loss losses)
+                print(epoch, loss, acc, np.round((time.time() - t0)/60, 2), best_loss, losses)
                 sys.stdout.flush()
                 
                 if kwargs["save_results"]:
