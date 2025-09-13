@@ -59,5 +59,6 @@ print("\nPlotting panels for supplementary figures")
 import plot_rnn_performance
 import plot_simple_tasks
 import plot_by_size
+import plot_supplementary_schematics
 
 #%%

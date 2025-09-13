@@ -25,6 +25,15 @@ mpl.rcParams['font.size'] = 8
 
     
 #%% plot scaffolds with trajectories on top
+from pysta.utils import schematic_walls as walls
+num_locs = walls.shape[0]
+L = int(np.sqrt(num_locs))
+adjacency = pysta.maze_utils.compute_adjacency(walls)[0].numpy()
+all_dists = dijkstra(pysta.maze_utils.compute_adjacency(walls)[0], directed=False, unweighted = True)
+all_locs = [[(1,2), (2,2), (2,1), (1,1), (1,0)],
+            [(2,2), (2,1), (1,1), (1,0)],
+            [(2,0), (1,0), (1,1), (0,1)]] # trajectories
+
 istarts = [0, 1, 0]
 for ilocs, locs in enumerate(all_locs):
     locs = np.array(locs).T.astype(float)
@@ -50,19 +59,6 @@ for ilocs, locs in enumerate(all_locs):
     
 # %% plot some example representations
 
-from pysta.utils import schematic_walls as walls
-num_locs = walls.shape[0]
-L = int(np.sqrt(num_locs))
-num_mod = 4
-
-
-adjacency = pysta.maze_utils.compute_adjacency(walls)[0].numpy()
-
-all_dists = dijkstra(pysta.maze_utils.compute_adjacency(walls)[0], directed=False, unweighted = True)
-
-all_locs = [[(1,2), (2,2), (2,1), (1,1), (1,0)],
-            [(2,2), (2,1), (1,1), (1,0)],
-            [(2,0), (1,0), (1,1), (0,1)]] # trajectories
 num_mod = 4
 
 for ipath, locs in enumerate(all_locs):
