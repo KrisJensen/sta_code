@@ -29,7 +29,7 @@ for command_type in ["WM", "relrew", "egocentric"]:
 
             command_changing_maze = f"python {pysta.basedir}/scripts/analyse_changing_maze_rnn.py {model_name} connectivity transition"
             
-            print(submit_slurm(command_changing_maze, f"analyse_{command_type}_ctrl_changing_maze_conn_{seed}", time = "32:00:00", partition = "gpu", extra_commands = "#SBATCH --gres=gpu:1", mem = "64G"))
+            print(submit_slurm(command_changing_maze, f"analyse_{command_type}_ctrl_changing_maze_{seed}", time = "32:00:00", partition = "gpu", extra_commands = "#SBATCH --gres=gpu:1", mem = "64G"))
 
 #%% Analyse the changing maze RNNs
 
