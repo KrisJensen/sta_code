@@ -22,7 +22,7 @@ for seed in seeds:
 commands["changing_maze"] = []
 for seed in seeds:
     command = f"{base_command} --changing_trial_maze 1 --num_epochs 250000 --seed {seed}"
-    print(submit_slurm(command, f"train_RNN_changing_maze_{seed}"))
+    print(submit_slurm(command, f"train_RNN_changing_maze_{seed}", time = "60:00:00"))
     commands["changing_maze"].append(command)
     
 #%% train RNNs with continual reward input
@@ -71,7 +71,7 @@ commands["sizes"] = []
 seed = seeds[0]-1
 for size in sizes:
     command = f"{base_command} --Nrec {size} --seed {seed}"
-    print(submit_slurm(command, f"train_RNN_size{size}_{seed}"))
+    print(submit_slurm(command, f"train_RNN_size{size}_{seed}", time = ("60:00:00" if size == 1000 else "48:00:00")))
     commands["sizes"].append(command)    
 
 #%% store commands
