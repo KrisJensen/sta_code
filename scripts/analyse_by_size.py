@@ -64,7 +64,7 @@ if __name__ == "__main__":
     
     analyse_by_network_size(base_model_name, sizes)
 
-    print("\nfinished")
+    print("\nFinished")
     sys.stdout.flush()
     
     
