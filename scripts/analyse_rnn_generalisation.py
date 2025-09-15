@@ -97,7 +97,7 @@ if __name__ == "__main__":
     
     analyse_rnn_generalisation(base_model_name, seeds)
 
-    print("\nfinished")
+    print("\nFinished")
     sys.stdout.flush()
     
     
