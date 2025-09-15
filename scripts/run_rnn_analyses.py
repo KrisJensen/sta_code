@@ -13,7 +13,7 @@ train_commands = pickle.load(open(f"{pysta.basedir}/slurm/commands/train_all_rnn
 #%% Run standard analyses of the RNNs in fixed mazes
 
 base_analysis_command = f"python {pysta.basedir}/scripts/analyse_rnn.py "
-for command_type in ["WM", "relrew", "egocentric"][:1]:
+for command_type in ["WM", "relrew", "egocentric"]:
     for command in train_commands[command_type]:
         model_name = pysta.utils.command_to_model_name(command)
         seed = model_name.split("model")[-1]
@@ -29,8 +29,7 @@ for command_type in ["WM", "relrew", "egocentric"][:1]:
 
             command_changing_maze = f"python {pysta.basedir}/scripts/analyse_changing_maze_rnn.py {model_name} connectivity transition"
             
-            print(submit_slurm(command_changing_maze, f"analyse_{command_type}_ctrl_changing_maze_conn_{seed}", time = "30:00:00", partition = "gpu", extra_commands = "#SBATCH --gres=gpu:1", mem = "64G"))
-
+            print(submit_slurm(command_changing_maze, f"analyse_{command_type}_ctrl_changing_maze_conn_{seed}", time = "32:00:00", partition = "gpu", extra_commands = "#SBATCH --gres=gpu:1", mem = "64G"))
 
 #%% Analyse the changing maze RNNs
 
@@ -40,19 +39,7 @@ for command in train_commands["changing_maze"]:
 
     command_changing_maze = f"python {pysta.basedir}/scripts/analyse_changing_maze_rnn.py {model_name} connectivity transition decoding"
     
-    print(submit_slurm(command_changing_maze, f"analyse_changing_maze_{seed}", time = "30:00:00", partition = "gpu", extra_commands = "#SBATCH --gres=gpu:1", mem = "64G"))
-
-#%% Analyse the 'old' changing maze RNNs
-for command in train_commands["changing_maze"]:
-    model_name = pysta.utils.command_to_model_name(command).replace("model", "old_model")
-    seed = model_name.split("model")[-1]
-
-    command_changing_maze = f"python {pysta.basedir}/scripts/analyse_changing_maze_rnn.py {model_name} connectivity transition decoding"
-    print(command_changing_maze)
-    
-    print(submit_slurm(command_changing_maze, f"analyse_changing_maze_old_{seed}", time = "30:00:00", partition = "gpu", extra_commands = "#SBATCH --gres=gpu:1", mem = "64G"))
-
-
+    print(submit_slurm(command_changing_maze, f"analyse_changing_maze_{seed}", time = "32:00:00", partition = "gpu", extra_commands = "#SBATCH --gres=gpu:1", mem = "64G"))
 
 #%% Analyse the simple tasks
 
@@ -69,9 +56,7 @@ for task in ["static_goal", "moving_goal"]:
                 command_analysis = f"python {pysta.basedir}/scripts/analyse_simple_tasks.py {model_name} {model_type} collect decoding planning"
 
                 print(submit_slurm(command_analysis, f"analyse_{task}_task_{seed}_{model_type}{relstr}", time = "4:00:00"))
-                
-                
-                
+                        
 #%% analyse the networks with different sizes
 
 size_commands = train_commands["sizes"]
@@ -80,7 +65,6 @@ sizes = [command.split("--Nrec ")[1].split()[0] for command in size_commands]
 command_size = f"python {pysta.basedir}/scripts/analyse_by_size.py {base_model_name} "+" ".join(sizes)
 
 print(submit_slurm(command_size, f"analyse_by_size", time = "16:00:00"))
-
 
 #%% analyse network generalisation across tasks
 
