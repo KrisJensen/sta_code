@@ -66,12 +66,12 @@ for seed in seeds:
     commands["static_goal_rel"].append(command)
 
 #%% train networks of different sizes 100-10000
-sizes = [100,200,300,400,600,800,1000]
+sizes = [50,100,150,200,300,400,500,600,800]
 commands["sizes"] = []
 seed = seeds[0]-1
 for size in sizes:
     command = f"{base_command} --Nrec {size} --seed {seed}"
-    print(submit_slurm(command, f"train_RNN_size{size}_{seed}", time = ("60:00:00" if size == 1000 else "48:00:00")))
+    print(submit_slurm(command, f"train_RNN_size{size}_{seed}", time = "48:00:00"))
     commands["sizes"].append(command)    
 
 #%% store commands
