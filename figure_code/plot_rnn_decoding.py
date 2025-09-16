@@ -251,13 +251,13 @@ for idata, decoding_data in enumerate([all_planning_decoding, all_execution_deco
     
     if idata == 0:
         #plt.legend(loc = "upper center", bbox_to_anchor = (0.5, 1.25), ncol = 3, frameon = False, columnspacing = 0.4, handlelength = 0.8, handletextpad = 0.25)
-        xlabel = "location at this time"
+        xlabel = "time in future"
     else:
-        xlabel = "actions from now"
+        xlabel = "time from now"
 
     plt.xticks(x)
     plt.xlabel(xlabel, labelpad = 3.5)
-    plt.ylabel("accuracy", labelpad = -5)
+    plt.ylabel("location prediction\naccuracy", labelpad = -5)
     plt.ylim(0, 1)
     plt.xlim(xvals.min(), xvals.max())
     plt.yticks([0, 1])
@@ -319,8 +319,8 @@ plt.ylim(0, 1)
 plt.yticks([0, 1])
 plt.xticks(steps)
 plt.gca().spines[['right', 'top']].set_visible(False)
-plt.xlabel("time in future", labelpad = 3.5)
-plt.ylabel("accuracy", labelpad = -5)
+plt.xlabel("true time in future", labelpad = 3.5)
+plt.ylabel("% correctly\npredicted", labelpad = -5)
 plt.legend(loc = "upper center", bbox_to_anchor = (0.6, 0.72), ncol = 1, frameon = False, columnspacing = 0.4, handlelength = 1.2, handletextpad = 0.5)
 plt.savefig(f"{pysta.basedir}/figures/rnn_decoding/decode_time_of_loc{ext}", bbox_inches = "tight", transparent = True)
 plt.show()
