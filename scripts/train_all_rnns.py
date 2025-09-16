@@ -66,7 +66,7 @@ for seed in seeds:
     commands["static_goal_rel"].append(command)
 
 #%% train networks of different sizes 100-10000
-sizes = [50,100,150,200,300,400,500,600,800]
+sizes = [50,100,150,250,350,500,600,800]
 commands["sizes"] = []
 seed = 10
 for size in sizes:
