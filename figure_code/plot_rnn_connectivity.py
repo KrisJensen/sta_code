@@ -98,11 +98,11 @@ for imodel, model in enumerate(models):
             
         pysta.plot_utils.plot_slot_connectivity(Win_eff_plot, num_locs, filename = f"{basefigdir}{model}/input_weights{substr}{ext}", show = True,
                                                 xticks = xticks, figsize = figsize,
-                                                yticks = range(1, num_slots+1), ylabel = "slot number", transparent = True)
+                                                yticks = range(1, num_slots+1), ylabel = "subspace number", transparent = True)
 
         #%% plot all output weights
         Wout_eff = Wout @ Csub_flat.T # (output, slots)
-        yticks = [f"slot {i}" for i in range(1, num_slots+1)]
+        yticks = [f"subspace {i}" for i in range(1, num_slots+1)]
         pysta.plot_utils.plot_slot_connectivity(Wout_eff[:, keep_slot_inds].T, num_locs, xtickrot=0, xticks = [], xlabel = "output", yticks = yticks,
                                                 filename = f"{basefigdir}{model}/output_weights{substr}{ext}", show = True, figsize = figsize, ylabel = None, transparent = True)
     
@@ -112,7 +112,7 @@ for imodel, model in enumerate(models):
         Wrec_eff = Csub_flat @ Wrec @ Csub_flat.T # (slots, slots)
         Wrec_eff_plot = Wrec_eff[keep_slot_inds, :][:, keep_slot_inds] # (slots, slots)
         pysta.plot_utils.plot_slot_connectivity(Wrec_eff_plot, num_locs, filename = f"{basefigdir}{model}/recurrent_weights{substr}{ext}", show = True, figsize = figsize, vmin = 0.2, vmax = 0.97, transparent = True,
-                                                yticks = [str(i) for i in range(1, num_slots+1)], xticks = [str(i) for i in range(1, num_slots+1)], xlabel = "input slot", ylabel = "output slot", xtickrot = 0)
+                                                yticks = [str(i) for i in range(1, num_slots+1)], xticks = [str(i) for i in range(1, num_slots+1)], xlabel = "input subspace", ylabel = "output subspace", xtickrot = 0)
 
 
         #%% also plot 1 input row at a time
@@ -133,7 +133,7 @@ for imodel, model in enumerate(models):
             ax = pysta.plot_utils.plot_slot_connectivity(Win_row, num_locs, xticks = xticks, xtickrot=0, yticks = [],
                                                         show = False, figsize = figsize, transparent = True)
             plt.xlabel(xlabel, labelpad = +1)
-            plt.ylabel(f"slot {irow}", labelpad = 2.5)
+            plt.ylabel(f"subspace {irow}", labelpad = 2.5)
             ax.tick_params(axis='x', which='major', pad=2, length = 0)
             plt.savefig(f"{basefigdir}{model}/input_row{irow}{substr}{ext}", transparent = True)
             plt.show()
@@ -312,7 +312,7 @@ for imodel, model in enumerate(models):
         m, s = np.array(all_scales).mean(0), np.array(all_scales).std(0)
         plt.plot(abs_deltas, m, color = "k")
         plt.fill_between(abs_deltas, m-s, m+s, alpha = 0.2, color = "k", linewidth = 0)
-        plt.xlabel("slot difference")
+        plt.xlabel("subspace difference")
         plt.ylabel("average strength")
         #plt.yticks([0.15,0.20,0.25,0.30])
         plt.gca().spines[['right', 'top']].set_visible(False)

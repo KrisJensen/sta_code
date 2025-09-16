@@ -516,11 +516,11 @@ def plot_slot_connectivity(W, num_locs, vmin = 0.01, vmax = 0.995, filename = No
         plt.axvline(num_locs*(i+1)-0.5, color = "k")
     
     if xticks is None:
-        xticklabs = [f"slot {i}" for i in range(nslots_x)]
+        xticklabs = [f"subspace {i}" for i in range(nslots_x)]
     else:
         xticklabs = xticks
     if yticks is None:
-        yticklabs = [f"slot {i}" for i in range(nslots_y)]
+        yticklabs = [f"subspace {i}" for i in range(nslots_y)]
     else:
         yticklabs = yticks
         
