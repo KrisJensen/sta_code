@@ -145,13 +145,11 @@ def load_model(model_name, store_all_activity = True, greedy = True, force_optim
     
     return rnn, figdir, datadir
 
-
-
-
 def cond_rel(tas, tbs):
     """for two sets of time points, tas = (ta_neural, ta_loc), tbs = (tb_neural, tb_loc),
     return whether tas and tbs are equivalent in a relative coding scheme"""
     return (tas[1] - tas[0]) == (tbs[1] - tbs[0])
+
 def cond_abs(tas, tbs):
     """for two sets of time points, tas = (ta_neural, ta_loc), tbs = (tb_neural, tb_loc),
     return whether tas and tbs are the same in an absolute coding scheme"""
