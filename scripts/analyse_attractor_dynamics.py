@@ -192,7 +192,7 @@ if __name__ == "__main__":
     if len(sys.argv) >= 2:
         model_name = sys.argv[1]
     else:
-        model_name = "MazeEnv_L4_max6/landscape_changing-rew_dynamic-rew_constant-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout/model22"
+        model_name = "MazeEnv_L4_max6/landscape_changing-rew_dynamic-rew_constant-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout/model31"
 
     seed = int(model_name.split("model")[-1])
     np.random.seed(seed)

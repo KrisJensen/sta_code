@@ -226,7 +226,7 @@ if __name__ == "__main__":
     else:
         collect, decoding, from_planning = True, True, True
         model_type = "base_rnn"
-        base_model_name = "MazeEnv_L4_max6/goal_changing-rew_static-rew_constant-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout/model21"
+        base_model_name = "MazeEnv_L4_max6/goal_changing-rew_static-rew_constant-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout/model31"
 
     min_dist, max_dist = 3, 6
     seed = int(base_model_name.split("/model")[-1])

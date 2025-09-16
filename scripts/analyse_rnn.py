@@ -178,7 +178,7 @@ if __name__ == "__main__":
         dp = ("dp" in sys.argv)
     else:
         collect, decoding, subspaces, time_of_loc, sta, dp = True, True, True, True, False, False
-        model_name = "MazeEnv/L4/max6/landscape/changing_rew/dynamic_rew/constant_maze/allo/relrew/plan5-6-7/VanillaRNN/iter9-10-11/tau5.0/opt/linout/L2/model0" 
+        model_name = "MazeEnv_L4_max6/landscape_changing-rew_dynamic-rew_constant-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout/model31"
 
     seed = int(model_name.split("model")[-1])
     np.random.seed(seed)

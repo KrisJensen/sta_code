@@ -362,7 +362,7 @@ if __name__ == "__main__":
         decoding = ("decoding" in sys.argv)
     else:
         effective_connectivity, transitions, decoding = True, True, True
-        model_name = "MazeEnv/L4/max6/landscape/changing_rew/dynamic_rew/changing_maze/allo/relrew/plan5-6-7/VanillaRNN/iter9-10-11/tau5.0/opt/N800/linout/L2/model0"
+        model_name = "MazeEnv_L4_max6/landscape_changing-rew_dynamic-rew_changing-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout/model31"
 
     print(f"Running analyses for model: {model_name}.\nEffective connectivity: {effective_connectivity}, Transitions: {transitions}, Decoding: {decoding}")
 

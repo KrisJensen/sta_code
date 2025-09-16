@@ -52,7 +52,7 @@ if __name__ == "__main__":
         base_model_name = sys.argv[1]
         sizes = [int(size) for size in sys.argv[2:]]
     else:
-        base_model_name = "MazeEnv_L4_max6/landscape_changing-rew_dynamic-rew_constant-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5_opt/N100_linout/model20"
+        base_model_name = "MazeEnv_L4_max6/landscape_changing-rew_dynamic-rew_constant-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5_opt/N100_linout/model10"
         sizes = [100,200,300,400,600,800,1000]
 
     seed = int(base_model_name.split("model")[-1])
