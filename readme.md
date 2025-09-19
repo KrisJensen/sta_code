@@ -19,8 +19,8 @@ python ./scripts/initialise_directories.py
 Run tests to check that everything works:  
 python ./tests/run_all_tests.py
 
-To train an example RNN:  
-python ./pysta/train_rnn.py
+To run some example handcrafted and RNN models:  
+python ./pysta/pysta_example_code.py
 
 To reproduce all results from the paper:  
 python ./scripts/run_handcrafted_analyses.py  

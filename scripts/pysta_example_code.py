@@ -71,20 +71,30 @@ for ienv, env in enumerate(envs):
 
 #%% run some example RNN training
 
+np.random.seed(0)
+torch.manual_seed(0)
+
 # train an RNN for a few steps on the reward landscape task
 print("\nTraining an RNN on the reward landscape task")
-kwargs = pysta.argparser.parse_args(working_memory = False, max_steps = 5, num_epochs = 1000, lrate = 2e-3, side_length = 4, overwrite = True) # training parameters
+kwargs = pysta.argparser.parse_args(working_memory = False, eval_freq = 50, seed = 0, planning_steps = [3,4], max_steps = 5, num_epochs = 1000, lrate = 3e-3, side_length = 4, overwrite = True) # training parameters
 rnn = pysta.train_rnn.main_train(kwargs)
 
 # collect some data post training (this is too little data, which speeds things up)
 print("\nCollecting empirical data from trained RNN")
-trial_data = pysta.analysis_utils.collect_data(rnn, num_trials = 4000)
+trial_data = pysta.analysis_utils.collect_data(rnn, num_trials = 6000)
 
 # deocding analysis. for simplicity, don't perform crossvalidate across positions. This is also too strongly regularized, which speeds things up.
 print("\nPerforming a simple decoding analysis")
-neural_times, loc_times = [1,2,3], [0,1,2,3,4] # what times to take neural activity from and predict location at
+neural_times, loc_times = [0,1,2,3], [0,1,2,3,4] # what times to take neural activity from and predict location at
 pred_result = pysta.analysis_utils.predict_locations_from_neurons(trial_data, crossvalidate_loc = False, neural_times = neural_times, loc_times = loc_times, logistic_C = 1e-1)
 
 # plot the result of this decoding
 print("\nPlotting decoding result")
-pysta.plot_utils.plot_prediction_result(pred_result["scores"], neural_times, loc_times, filename = f"{basedir}/figures/examples/rnn_decoding.pdf")
+
+# first plot whether the information exists
+pysta.plot_utils.plot_prediction_result(pred_result["nongen_scores"], neural_times, loc_times, filename = f"{basedir}/figures/examples/rnn_decoding.pdf", show = True)
+
+# then plot generalisation of the (1,3) decoder
+pysta.plot_utils.plot_prediction_result(pred_result["scores"][1,3], neural_times, loc_times, filename = f"{basedir}/figures/examples/rnn_decoding_gen.pdf", show = True)
+
+# %%

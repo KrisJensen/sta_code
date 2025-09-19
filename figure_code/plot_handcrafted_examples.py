@@ -92,14 +92,9 @@ for agent in ["td", "sr", "sta"]:
             pysta.plot_utils.plot_perspective_attractor(filename = fname, **kwargs, cmap = "YlOrRd", vmin = -0.15, vmax = 1.3, show = True, goal_inds = range((0 if env == "moving" else 1), kwargs["vmap"].shape[0]), bbox_inches = mpl.transforms.Bbox([[2.5,1.6], [5.9,2.8]]), figsize = (8.22,4.4))
         else:
             if agent == "td":
-                vmin, vmax = (0.45*0.85, 1.1) if env == "static" else (0.541, 0.6)
-            if agent == "sr":
-                vmin, vmax = 0.2, 4.0
-            if agent == "td":
                 vmin, vmax = (0.45*0.85, 1.3) if env == "static" else (0.541, 0.6)
             if agent == "sr":
                 vmin, vmax = 0.2, 5.0
-            print(env, agent, minval, maxval)
             pysta.plot_utils.plot_flat_frame(filename = fname, **kwargs, cmap = "YlOrRd", vmin = vmin, vmax = vmax, show = True, figsize = figsize, mouse_size = mouse_size, cheese_size = cheese_size)
 
 
