@@ -12,6 +12,7 @@ from pysta import basedir
 from scipy.stats import binned_statistic
 ext = ".pdf"
 basefigdir = f"{basedir}/figures/rnn_behaviour/"
+np.random.seed(0)
 
 #%% set font with arial .ttf file
 import matplotlib as mpl
@@ -22,7 +23,7 @@ mpl.rcParams['font.family'] = "Arial"
 mpl.rcParams['font.size'] = 8
 
 #%% load some data
-seeds = [21,22,23,24,25]
+seeds = [31,32,33,34,35]
 model_names = [f"MazeEnv_L4_max6/landscape_changing-rew_dynamic-rew_constant-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout/model{seed}" for seed in seeds]
 datadirs = [f"{basedir}/data/rnn_analyses/" + "_".join(model_name.split("/")) + "_" for model_name in model_names]
 figsize = (1.85, 1.6)
@@ -70,7 +71,7 @@ plt.gca().spines[['right', 'top']].set_visible(False)
 plt.xlabel("action number", labelpad = 3.5)
 plt.ylabel("accuracy", labelpad = 2.5)
 plt.xlim(xs[0], xs[-1])
-plt.ylim(0.86, 0.93)
+plt.ylim(0.91, 0.94)
 plt.savefig(f"{basefigdir}perf_by_time{ext}", bbox_inches = "tight", transparent = True)
 plt.show()
 plt.close()

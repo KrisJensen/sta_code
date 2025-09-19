@@ -14,6 +14,7 @@ from pysta import basedir
 
 ext = ".pdf"
 basefigdir = f"{basedir}/figures/changing_maze_rnn/"
+np.random.seed(0)
 
 #%% set font with arial .ttf file
 import matplotlib as mpl
@@ -24,10 +25,9 @@ mpl.rcParams['font.family'] = "Arial"
 mpl.rcParams['font.size'] = 8
 
 #%% load data
-seeds = [21,22,23,24,25]
+seeds = [31,32,33,34,35]
 model_names = [f"MazeEnv_L4_max6/landscape_changing-rew_dynamic-rew_changing-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout/model{seed}" for seed in seeds]
 model_names_ref = [name.replace("changing-maze", "constant-maze") for name in model_names]
-#model_names = [f"MazeEnv_L4_max6/landscape_changing-rew_dynamic-rew_changing-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout/old_model{seed}" for seed in [21,23,24,25]]
 datadirs = [f"{basedir}/data/rnn_analyses/" + "_".join(model_name.split("/")) + "_" for model_name in model_names]
 datadirs_ref = [f"{basedir}/data/rnn_analyses/" + "_".join(model_name.split("/")) + "_" for model_name in model_names_ref]
 
@@ -96,7 +96,7 @@ for iind, ind in enumerate([ind1, ind2]): # for each example
     # plot the inferred adjacency matrix
     plt.figure(figsize = figsize)
     Weff = changing_maze_results["Weffs"][ind]
-    vmin, vmax = np.quantile(Weff, 0.05), np.quantile(Weff, 0.95)
+    vmin, vmax = np.quantile(Weff, 0.15), np.quantile(Weff, 0.9)
     plt.imshow(Weff + always_same, cmap = "coolwarm", vmin = vmin, vmax = vmax)
     plt.xticks([])
     plt.yticks([])
@@ -104,75 +104,39 @@ for iind, ind in enumerate([ind1, ind2]): # for each example
     plt.show()
     plt.close()
 
-#%% plot correlation statistics
+
+#%% plot avg wall correlation across mazes
 
 cols = [np.array(plt.get_cmap("tab10")(0)) for _ in range(2)]
 cols[1] = np.zeros(3)+0.6
 
-true_cors, false_cors, false_adj_cors = [changing_maze_results[key] for key in ["true_cors", "false_cors", "false_adj_cors"]]
+all_maze_results = [pickle.load(open(f"{datadir}correlation_results.pickle", "rb")) for datadir in datadirs] # save the trial data
+all_true, all_false = [], []
+for maze_results in all_maze_results:
+    all_true.append(np.mean(maze_results["true_cors"]))
+    all_false.append(np.mean(maze_results["false_cors"]))
+    
+data = np.array([all_true, all_false]).T # (2, num_mazes, num_pairs)
 
-# print(len(true_cors), len(false_cors), len(false_adj_cors))
-# print(np.mean(true_cors), np.mean(false_cors), np.mean(false_adj_cors))
+plt.figure(figsize = (1.4, 1.6))
 
-mtrue, strue = np.mean(true_cors), np.std(true_cors)
-bins_true = np.linspace(np.amin(true_cors)-1e-5, np.amax(true_cors)+1e-5, 6)
-bins_false = np.linspace(np.amin(false_cors)-1e-5, np.amax(false_cors)+1e-5, 12)
+xs, ms, ss = np.arange(data.shape[1]), np.mean(data, axis = 0), np.std(data, axis = 0)
+jitters = np.random.normal(0, 0.1, len(data)) # jitter for plotting
+plt.bar(xs, ms, yerr = ss, capsize = 3, error_kw={'elinewidth': 2, "markeredgewidth": 2}, color = cols)
+for idata, datapoints in enumerate(data.T):
+    plt.scatter(jitters+xs[idata], datapoints, marker = ".", color = "k", alpha = 0.5, linewidth = 0.0, s = 80)
 
+plt.xticks(xs, ["same\nmaze", "different\nmaze"])#, rotation = 45, ha = "right")
+plt.ylabel("correlation\nbetween A and W", labelpad = -5)
+plt.gca().tick_params(axis='x', which='major', pad=2)
 
-plt.figure(figsize = (3.0,2))
-countst, _, _ = plt.hist(true_cors, bins = bins_true, label = "same maze", density = True, color = cols[0])
-countsf, _, _ = plt.hist(false_cors, bins = bins_false, label = "different maze", density = True, color = cols[1])
-
-ymin, ymax = 0, np.ceil(max(np.amax(countsf), np.amax(countst))/5)*5
-plt.ylim(ymin, ymax)
-plt.xlabel("correlation of W with A")
-plt.ylabel("frequency")
-plt.yticks([])
-plt.legend(frameon = False)
+plt.axhline(0.0, color = "k")
 plt.gca().spines[['right', 'top']].set_visible(False)
-plt.savefig(f"{basefigdir}adjacency_matrix_correlations{ext}", bbox_inches = "tight", transparent = True)
+plt.ylim(0.0, 1.0)
+plt.yticks([0, 1])
+plt.savefig(f"{basefigdir}all_adjacency_matrix_correlations{ext}", bbox_inches = "tight", transparent = True)
 plt.show()
 plt.close()
-
-
-#%% now plot avg across mazes
-
-for iref, plot_dirs in enumerate([datadirs, datadirs_ref]):
-
-    all_maze_results = [pickle.load(open(f"{datadir}correlation_results.pickle", "rb")) for datadir in plot_dirs] # save the trial data
-    all_true, all_false = [], []
-    for maze_results in all_maze_results:
-        all_true.append(np.mean(maze_results["true_cors"]))
-        all_false.append(np.mean(maze_results["false_cors"]))
-        #print(pearsonr([p[1] for p in maze_results["perfs"]], maze_results["true_cors"]))
-        
-    data = np.array([all_true, all_false]).T # (2, num_mazes, num_pairs)
-
-    plt.figure(figsize = (1.4, 1.1))
-
-    xs, ms, ss = np.arange(data.shape[1]), np.mean(data, axis = 0), np.std(data, axis = 0)
-    jitters = np.random.normal(0, 0.1, len(data)) # jitter for plotting
-    plt.bar(xs, ms, yerr = ss, capsize = 3, error_kw={'elinewidth': 2, "markeredgewidth": 2}, color = cols)
-    for idata, datapoints in enumerate(data.T):
-        plt.scatter(jitters+xs[idata], datapoints, marker = ".", color = "k", alpha = 0.5, linewidth = 0.0, s = 80)
-        
-    plt.xticks(xs, ["same\nmaze", "different\nmaze"])#, rotation = 45, ha ="right")
-    
-    if iref == 1:
-        plt.xticks(xs, ["same\nmaze", "different\nmaze"])#, rotation = 45, ha = "right")
-        plt.ylabel("fixed RNN\ncorr(W, A)", labelpad = -5)
-        plt.gca().tick_params(axis='x', which='major', pad=2)
-    else:
-        plt.xticks([])
-        plt.ylabel("changing RNN\ncorr(W, A)", labelpad = -5)
-    
-    plt.axhline(0.0, color = "k")
-    plt.gca().spines[['right', 'top']].set_visible(False)
-    plt.ylim(0.0, 1.0)
-    plt.yticks([0, 1])
-    plt.savefig(f"{basefigdir}all_adjacency_matrix_correlations{iref}{ext}", bbox_inches = "tight", transparent = True)
-    plt.show()
-    plt.close()
 
 
 
@@ -224,8 +188,6 @@ plt.close()
 # %% plot wall input to locations or non-locations in the subspace
 
 analysis_results = [pickle.load(open(f"{datadir}wall_to_transition_result.pickle","rb")) for datadir in datadirs]     
-# analysis_results = [pickle.load(open(f"{datadir}wall_to_transition_result.pickle","rb")) for datadir in datadirs_ref]             
-
 
 cols = {"stim": (0.35, 0.65, 0.2),
           "strong_ex": plt.get_cmap("coolwarm")(0.95), 
@@ -237,7 +199,6 @@ cols = {"stim": (0.35, 0.65, 0.2),
 
 
 #%% first plot effective connectivity
-
 
 endpoints, adjacents, others = [np.array([result[key] for result in analysis_results]) for key in ["connection_to_endpoint", "connection_to_adjacent", "connection_to_other"]]
 
@@ -281,7 +242,7 @@ for idata, datapoints in enumerate(data.T):
     
 plt.ylabel("wall input projection")
 #plt.xticks([0, 1], ["wall-adjacent", "reference"], rotation = 45, ha = "right")
-plt.xticks(xs, ["wall", "adjacent", "other"])
+plt.xticks(xs, ["through wall   ", "   adjacent", "other"])
 plt.axhline(0.0, color = "k", lw = 1)
 plt.gca().spines[['right', 'top']].set_visible(False)
 plt.savefig(f"{basefigdir}wall_to_transition_input{ext}", bbox_inches = "tight", transparent = True)
@@ -290,7 +251,6 @@ plt.close()
 
 
 #%% plot learning curves
-
 
 epochs, epochs_ref, accs, accs_ref = [], [], [], []
 
@@ -317,8 +277,9 @@ for idata, data in enumerate([(epochs, accs), (epochs_ref, accs_ref)]):
 
 plt.legend(frameon = False)
 plt.gca().spines[['right', 'top']].set_visible(False)
-plt.xlim(-2000, 120000)
-plt.xticks(range(0, 120001, 40000))
+xmax = int(max(epochs[:, -1].max(), epochs_ref[:, -1].max()))
+plt.xlim(-5000, xmax)
+plt.xticks(range(0, xmax+1, 100000))
 plt.xlabel("epoch", labelpad = 3.5)
 plt.ylabel("accuracy", labelpad = 2.5)
 plt.savefig(f"{basefigdir}training_curves{ext}", bbox_inches = "tight", transparent = True)

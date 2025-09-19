@@ -10,6 +10,7 @@ from pysta import basedir
 import copy
 pysta.reload()
 ext = ".pdf"
+np.random.seed(0)
 
 #%% set font with arial .ttf file
 import matplotlib as mpl
@@ -25,7 +26,7 @@ data = pickle.load(open(f"{basedir}/data/examples/example_task_data.pickle", "rb
 cmap = "viridis"
 vmin, vmax = 2.3, 1.15
 no_loc = True
-figsize, mouse_size, cheese_size = (3.50/2.54, 3.50/2.54), 340, 300
+figsize, mouse_size, cheese_size = (3.30/2.54, 3.30/2.54), 320, 280
 
 # plot moving goal
 moving_goal = data["moving_goal"]
@@ -38,6 +39,19 @@ pysta.plot_utils.plot_flat_frame(filename = f"{basedir}/figures/handcrafted_exam
 # plot static goal
 static_goal = data["static_goal"]
 pysta.plot_utils.plot_flat_frame(filename = f"{basedir}/figures/handcrafted_examples/static_goal{ext}", vmap = static_goal["rew"][0], **static_goal, cmap = cmap, vmin = -0.6*vmin, vmax = +0.6*vmax, show = True, figsize = figsize, mouse_size = mouse_size, cheese_size = cheese_size)
+
+# plot second static goal
+rew, goal, opt = static_goal["rew"][0] * 0, 2, static_goal["optimal_actions"]*0
+rew[goal] += 1
+opt[3] += 1
+
+pysta.plot_utils.plot_flat_frame(filename = None, vmap = rew, optimal_actions = opt, walls = static_goal["walls"], loc = static_goal["loc"], goal = goal, cmap = cmap, vmin = -0.6*vmin, vmax = +0.6*vmax, show = False, figsize = figsize, mouse_size = mouse_size, cheese_size = cheese_size)
+goal_loc = pysta.maze_utils.index_to_loc(10, 4)
+plt.scatter(goal_loc[0]-0.05, goal_loc[1], color = np.ones(3)*0.45, marker = pysta.plot_utils.cheese_marker, s = cheese_size*0.75, zorder = 80, lw = 0.3)
+plt.savefig(f"{basedir}/figures/handcrafted_examples/static_goal2{ext}", bbox_inches = "tight", transparent = True)
+plt.show()
+plt.close()
+
 
 # plot reward landscape at different times
 rew_land = data["rew_landscape"]

@@ -8,6 +8,7 @@ import pickle
 import matplotlib.pyplot as plt
 import numpy as np
 ext = ".pdf"
+np.random.seed(0)
 
 #%% set font with arial .ttf file
 import matplotlib as mpl
@@ -18,7 +19,7 @@ mpl.rcParams['font.family'] = "Arial"
 mpl.rcParams['font.size'] = 8
 
 #%% load some data
-seeds = [21,22,23,24,25]
+seeds = [31,32,33,34,35]
 basetasks = ["static_relrew", "static_planrew", "moving_relrew", "moving_planrew"]
 labels = ["RNN", "STA"]
 basenames = {"RNN": {"static_relrew": "MazeEnv_L4_max6_goal_changing-rew_static-rew_constant-maze_allo_relrew_plan5-6-7_VanillaRNN_iter9-10-11_tau5.0_opt_N800_linout_model",

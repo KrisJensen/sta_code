@@ -47,7 +47,7 @@ import plot_rnn_generalization
 print("\nPlotting panels for figure 5")
 import plot_fig5_schematics
 import plot_rnn_connectivity
-import plot_attractor_dynamics
+#import plot_attractor_dynamics
 
 #%% Figure 6
 print("\nPlotting panels for figure 6")

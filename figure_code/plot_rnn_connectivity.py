@@ -13,6 +13,7 @@ import matplotlib as mpl
 from pysta import basedir
 ext = ".pdf"
 basefigdir = f"{basedir}/figures/rnn_connectivity/"
+np.random.seed(0)
 
 #%% set font with arial .ttf file
 import matplotlib as mpl
@@ -24,7 +25,7 @@ mpl.rcParams['font.size'] = 8
 
 #%% set some parameters
 ext = ".pdf"
-seeds = [21,22,23,24,25]
+seeds = [31,32,33,34,35]
 
 basenames = {"WM": "MazeEnv_L4_max6_landscape_changing-rew_dynamic-rew_constant-maze_allo_planrew_plan5-6-7_VanillaRNN_iter10_tau5.0_opt_N800_linout_model",
             "STA":
@@ -60,7 +61,7 @@ def get_model_and_subs(model, seed, subspace_type):
 #%%
 
 models = ["WM", "STA", "STA_true", "relrew", "egocentric"]
-ex_seed = 1
+ex_seed = 0
 for imodel, model in enumerate(models):
     os.makedirs(f"{basefigdir}{model}/", exist_ok = True)
     

@@ -9,6 +9,8 @@ import torch
 pysta.reload()
 from pysta.utils import compute_model_support
 from pysta import basedir
+ext = ".pdf"
+np.random.seed(0)
 
 #%% set font with arial .ttf file
 import matplotlib as mpl
@@ -19,8 +21,7 @@ mpl.rcParams['font.family'] = "Arial"
 mpl.rcParams['font.size'] = 8
 
 #%% set some parameters
-ext = ".pdf"
-seeds = [21,22,23,24,25]
+seeds = [31,32,33,34,35]
 
 basenames = {"WM": "MazeEnv_L4_max6_landscape_changing-rew_dynamic-rew_constant-maze_allo_planrew_plan5-6-7_VanillaRNN_iter10_tau5.0_opt_N800_linout_model",
              "STA":
@@ -257,7 +258,7 @@ for idata, decoding_data in enumerate([all_planning_decoding, all_execution_deco
 
     plt.xticks(x)
     plt.xlabel(xlabel, labelpad = 3.5)
-    plt.ylabel("location prediction\naccuracy", labelpad = -5)
+    plt.ylabel("% correctly\npredicted location", labelpad = -7)
     plt.ylim(0, 1)
     plt.xlim(xvals.min(), xvals.max())
     plt.yticks([0, 1])
@@ -320,7 +321,8 @@ plt.yticks([0, 1])
 plt.xticks(steps)
 plt.gca().spines[['right', 'top']].set_visible(False)
 plt.xlabel("true time in future", labelpad = 3.5)
-plt.ylabel("% correctly\npredicted", labelpad = -5)
+#plt.ylabel("% correctly predicted", labelpad = 0)
+plt.ylabel("% correctly\npredicted time", labelpad = -7)
 plt.legend(loc = "upper center", bbox_to_anchor = (0.6, 0.72), ncol = 1, frameon = False, columnspacing = 0.4, handlelength = 1.2, handletextpad = 0.5)
 plt.savefig(f"{pysta.basedir}/figures/rnn_decoding/decode_time_of_loc{ext}", bbox_inches = "tight", transparent = True)
 plt.show()

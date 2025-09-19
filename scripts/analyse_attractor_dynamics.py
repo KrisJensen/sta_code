@@ -18,43 +18,60 @@ sta, ctrl = False, False
 
 #%%
 
+
+# sta, ctrl = False, False
 # pysta.reload()
-# model_name = "MazeEnv_L4_max6/landscape_changing-rew_dynamic-rew_constant-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout/model22"
-# paths = [[0,4,8,12,13,9,5], [0,1,2,3,7,6,5]]
-# stim_t = 3
+# model_name = "MazeEnv_L4_max6/landscape_changing-rew_dynamic-rew_constant-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout/model33"
+# paths = [[12,8,9,5,6,6,6], [12,13,14,10,6,6,6]]
+# stim_t = 2
 
 # rnn, figdir, datadir = pysta.utils.load_model(model_name) # load the model
 # pysta.plot_utils.plot_flat_frame(rnn.env.walls[0], show = True)
-    
+
+
+# #%%
+
+
+# sta, ctrl = False, False
+# pysta.reload()
+# model_name = "MazeEnv_L4_max6/landscape_changing-rew_dynamic-rew_constant-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout/model35"
+# paths = [[0,4,8,9,10,10,10], [0,1,2,6,10,10,10]]
+# stim_t = 2
+
+# rnn, figdir, datadir = pysta.utils.load_model(model_name) # load the model
+# pysta.plot_utils.plot_flat_frame(rnn.env.walls[0], show = True)
+
+
 
 
 
 #%%
 
 def run_attractor_analyses(model_name, sta = False, ctrl = False,
-                           paths = [[0,4,8,12,13,9,5], [0,1,2,3,7,6,5]],
-                           stim_t = 3):
+                           paths = [[0,4,8,9,10,10,10], [0,1,2,6,10,10,10]],
+                           stim_t = 2):
 
 
     #%%
     
     stim_loc = paths[0][stim_t]
     rnn, figdir, datadir = pysta.utils.load_model(model_name, create_sta = sta) # load the model
-
+    rnn.env.planning_steps = int(np.amax(rnn.env.planning_steps)) # match planning steps for simplicity
+    
     rnn.reset()
     rnn.env.rews[...] = -1.0
     for ipath, path in enumerate(paths):
         for i in range(len(path)):
             rnn.env.rews[:, i, path[i]] = +0.73+0.27*ipath
             rnn.env.rews[:, i, path[i]] = +0.7+0.2*ipath
+            rnn.env.rews[:, i, path[i]] = +0.8+0.2*ipath
     rnn.env.compute_value_function()
     rnn.env.loc[...] = paths[0][0]
 
     if sta:
         stim_dir = torch.zeros(rnn.Nrec, 1)
         stim_dir[stim_t*rnn.env.num_locs+stim_loc, 0] = 1
-        strengths = np.linspace(0, 480, 15)
-        #strengths = np.linspace(0, 400, 7)
+        strengths = np.linspace(0, 420, 19)
         num_initial_steps = 1
         num_p1, num_p2, num_p3 = 2,2,2
         
@@ -76,8 +93,7 @@ def run_attractor_analyses(model_name, sta = False, ctrl = False,
             return new_r
         
         strengths = np.concatenate([np.linspace(0, 2.0, 21), np.ones(1)*3.0])
-        #strengths = np.linspace(0, 8.0, 21)
-        strengths = np.linspace(0, 6.0, 21)
+        strengths = np.linspace(0, 8.0, 31)
         stim_dir = torch.tensor(Csubs[stim_t, stim_loc])[:, None]
 
         num_initial_steps = np.amax(rnn.env.planning_steps)
@@ -163,9 +179,9 @@ def plot_stuff():
 
     ind = 0
     walls = rnn.env.walls[0].numpy()
-    for r in ([old_r] + new_rs)[::4]:
+    for ir, r in enumerate(([old_r] + new_rs)[::4]):
         vmap = decode(r[ind].numpy())
-        pysta.plot_utils.plot_perspective_attractor(walls, vmap, filename = None, plot_proj = True, cmap = "YlOrRd", figsize = (5.5,2.2), aspect = (1,1,4.2), view_init = (-22,-10,-90))
+        pysta.plot_utils.plot_perspective_attractor(walls, vmap, filename = f"{basedir}{ir}.pdf", plot_proj = True, cmap = "YlOrRd", figsize = (5.5,2.2), aspect = (1,1,4.2), view_init = (-22,-10,-90))
 
     plt.figure(figsize = (2,1.5))
     # plt.plot(np.arange(len(deltas)), deltas.mean(-1))
@@ -174,6 +190,7 @@ def plot_stuff():
     plt.plot(np.arange(len(relax_deltas)), relax_deltas[:, ind])
     plt.xlabel("perturbation strength")
     plt.ylabel("rate change")
+    plt.savefig(f"{basedir}/deltas.pdf", bbox_inches = "tight")
     plt.show()
     plt.close()
 
@@ -181,6 +198,7 @@ def plot_stuff():
     diffs = np.abs(all_projs - all_projs[:, :1, ...]).sum((-1,-2))
     plt.figure()
     plt.plot(diffs[::4, :].T)
+    plt.savefig(f"{basedir}/diffs.pdf", bbox_inches = "tight")
     plt.show()
 
 
@@ -189,11 +207,7 @@ def plot_stuff():
 
 if __name__ == "__main__":
     
-    if len(sys.argv) >= 2:
-        model_name = sys.argv[1]
-    else:
-        model_name = "MazeEnv_L4_max6/landscape_changing-rew_dynamic-rew_constant-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout/model31"
-
+    model_name = "MazeEnv_L4_max6/landscape_changing-rew_dynamic-rew_constant-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout/model35"
     seed = int(model_name.split("model")[-1])
     np.random.seed(seed)
     torch.manual_seed(seed)

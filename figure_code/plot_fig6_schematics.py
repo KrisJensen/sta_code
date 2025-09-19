@@ -11,6 +11,7 @@ from pysta.maze_utils import loc_to_index
 from pysta.plot_utils import plot_perspective_attractor
 ext = ".pdf"
 basefigdir = f"{basedir}/figures/changing_maze_rnn/"
+np.random.seed(0)
 
 #%% set font with arial .ttf file
 import matplotlib as mpl

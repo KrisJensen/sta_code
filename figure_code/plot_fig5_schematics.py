@@ -14,6 +14,7 @@ from pysta import basedir
 from scipy.spatial.transform import Rotation
 ext = ".pdf"
 basefigdir = f"{basedir}/figures/rnn_connectivity/"
+np.random.seed(0)
 
 #%% set font with arial .ttf file
 import matplotlib as mpl
@@ -90,8 +91,8 @@ plt.show()
 plt.close()
 
 # %% load data
-
-example_model = "sta_MazeEnv_L4_max6_landscape_changing-rew_dynamic-rew_constant-maze_allo_planrew_plan5-6-7_VanillaRNN_iter10_tau5.0_opt_N800_linout_model22"
+ex_seed = 31
+example_model = f"sta_MazeEnv_L4_max6_landscape_changing-rew_dynamic-rew_constant-maze_allo_planrew_plan5-6-7_VanillaRNN_iter10_tau5.0_opt_N800_linout_model{ex_seed}"
 connectivity_data = pickle.load(open(f"{basedir}/data/rnn_analyses/{example_model}_connectivity_data.pickle", "rb"))
 
 env = connectivity_data["rnn"].env

@@ -99,7 +99,7 @@ def plot_flat_frame(walls, figsize = (1.5,1.5), filename = None, cheese_size = 3
         None # don't plot goal
     elif type(goal) == int:
         goal_loc = index_to_loc(goal, L)
-        ax.scatter(goal_loc[0], goal_loc[1], color = "k", marker = cheese_marker, s = cheese_size, zorder = 80, lw = 0.75)
+        ax.scatter(goal_loc[0]-0.04, goal_loc[1], color = "k", marker = cheese_marker, s = cheese_size, zorder = 80, lw = 0.75)
     else:
         goal_loc = index_to_loc(goal, L)[:, goal_step_num:]
         for i_g, g in enumerate(goal_loc.T[:-1]):
@@ -108,7 +108,7 @@ def plot_flat_frame(walls, figsize = (1.5,1.5), filename = None, cheese_size = 3
             col = np.array([222, 155, 0])/255
             arrow = (i_g == goal_loc.shape[-1]-2)
             ax.arrow(g[0], g[1], g1[0]-g[0], g1[1]-g[1], color = col, alpha = alpha, length_includes_head = True, width = 0.1, head_width = 0.35*arrow, head_length = 0.45*arrow)
-        ax.scatter(goal_loc[0, 0], goal_loc[1, 0], color = "k", marker = cheese_marker, s = cheese_size, zorder = 99, lw = 0.75)
+        ax.scatter(goal_loc[0, 0]-0.04, goal_loc[1, 0], color = "k", marker = cheese_marker, s = cheese_size, zorder = 99, lw = 0.75)
     
     if loc is not None: # plot current location
         agent_loc = index_to_loc(loc, L)

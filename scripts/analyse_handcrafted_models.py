@@ -77,5 +77,5 @@ if __name__ == "__main__":
 
     compare_handcrafted_models()
     
-    print("/nFinished")
+    print("\nFinished")
     

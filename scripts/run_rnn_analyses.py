@@ -45,6 +45,7 @@ for command in train_commands["changing_maze"]:
 
 for task in ["static_goal", "moving_goal"]:
     for relstr in ["", "_rel"]:
+        print(relstr)
 
         for command in train_commands[task+relstr]:
             
@@ -73,12 +74,6 @@ seeds = [command.split("--seed ")[1].split()[0] for command in train_commands["W
 command_gen = f"python {pysta.basedir}/scripts/analyse_rnn_generalisation.py {base_model_name} "+" ".join(seeds)
 
 print(submit_slurm(command_gen, f"analyse_rnn_generalisation", time = "2:00:00"))
-
-#%% run attractor analyses
-
-base_model_name = pysta.utils.command_to_model_name(train_commands["WM"][1])
-command_att = f"python {pysta.basedir}/scripts/analyse_attractor_dynamics.py {base_model_name}"
-print(submit_slurm(command_att, f"analyse_rnn_attractor_dynamics", time = "2:00:00"))
 
 #%% run analyses of RNN behaviour
 

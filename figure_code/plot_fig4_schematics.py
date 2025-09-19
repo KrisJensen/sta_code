@@ -14,6 +14,7 @@ from pysta import basedir
 from scipy.ndimage import gaussian_filter1d
 from matplotlib import patches
 ext = ".pdf"
+np.random.seed(0)
 
 #%% set font with arial .ttf file
 import matplotlib as mpl

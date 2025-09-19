@@ -11,6 +11,7 @@ from pysta import basedir
 import copy
 pysta.reload()
 ext = ".pdf"
+np.random.seed(0)
 
 #%% set font with arial .ttf file
 import matplotlib as mpl

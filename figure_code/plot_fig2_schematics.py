@@ -15,14 +15,13 @@ from pysta.plot_utils import Arrow3D
 from pysta.plot_utils import plot_perspective_attractor
 from scipy.sparse.csgraph import dijkstra
 import matplotlib.patches as patches
-
 import matplotlib as mpl
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.patches import FancyArrowPatch
-
-
 from pysta import basedir
+
 ext = ".pdf"
+np.random.seed(0)
 
 #%% set font with arial .ttf file
 import matplotlib as mpl
@@ -184,7 +183,7 @@ for ipath, locs in enumerate(all_locs):
 
 # on path
 stim = (2, 1, 0)
-excite = [(1,1,1), (1,2,0), (3,1,1), (3,2,0)]
+excite = [(1,1,1), (1,2,0), (1,1,0), (3,1,1), (3,2,0), (3,1,0)]
 inhibit = [(2, x // 3, x % 3) for x in range(9) if not (x%3 == 0 and x // 3 == 1)]
 
 #acts_con = [act*0.0 + 0.5 for act in acts_plan]
@@ -201,20 +200,25 @@ act_cols[stim[0]][loc_to_index([stim[1], stim[2]], L = 3)] = (0.35, 0.65, 0.2)
 vmap = np.zeros((4, 9))
 ax = plot_perspective_attractor(walls, vmap, state_actions = False, act_cols = act_cols, cmap = "coolwarm", plot_proj = False, figsize = (3.5,2.2), aspect = (1,1,2.2), view_init = (-22,-10,-90), plot_subs = True, show = False)
 
-styleA = "Simple, tail_width=3, head_width=8, head_length=9"
-styleB = "Simple, tail_width=3, head_width=1.5, head_length=0.1"
+styleA = "Simple, tail_width=2.2, head_width=6, head_length=8"
+styleB = "Simple, tail_width=2.2, head_width=1.5, head_length=0.1"
 exc_col = plt.get_cmap("coolwarm")(0.9)
 propA = dict(mutation_scale=1, arrowstyle=styleA, lw=0.0, color=exc_col, shrinkA=0, shrinkB=0, alpha = 0.8)
 propB = dict(mutation_scale=1, arrowstyle=styleB, lw=0.0, color=exc_col, shrinkA=0, shrinkB=0, alpha = 0.8)
 
 # new
-a = Arrow3D([stim[1], 0.80], [2-stim[2], 2-0.59], [stim[0], 1.42], **propB, zorder = 100)
+a = Arrow3D([stim[1], 0.80], [2-stim[2], 2-0.59], [stim[0], 1.43], **propB, zorder = 100)
 ax.add_artist(a)
-a = Arrow3D([stim[1], 0.2], [2-stim[2], 2+0.4], [stim[0], 1.59], **propB, zorder = 100)
+a = Arrow3D([stim[1], 0.2], [2-stim[2], 2+0.51], [stim[0], 1.5], **propA, zorder = 100)
 ax.add_artist(a)
-a = Arrow3D([stim[1], 1.0], [2-stim[2]-0.05, 2-0.95], [stim[0]+0.1, 2.98], **propA, zorder = 100)
+a = Arrow3D([stim[1], 1.0], [2-stim[2]-0.18, 2-0.99], [stim[0]+0.08, 3.0], **propA, zorder = 100)
 ax.add_artist(a)
-a = Arrow3D([stim[1]+0.3, 2.0], [2-stim[2]+0.01, 2+0.0], [stim[0]+0.3, 2.98], **propA, zorder = 100)
+a = Arrow3D([stim[1]+0.3, 2.1], [2-stim[2]+0.1, 2+0.05], [stim[0]+0.3, 2.98], **propA, zorder = 100)
+ax.add_artist(a)
+
+a = Arrow3D([stim[1], 0.4], [2-stim[2], 2+0.18], [stim[0], 1.51], **propB, zorder = 100)
+ax.add_artist(a)
+a = Arrow3D([stim[1]+0.3, 1.95], [2-stim[2]+0.04, 2-0.26], [stim[0]+0.3, 2.70], **propA, zorder = 100)
 ax.add_artist(a)
 
 plt.tight_layout = True

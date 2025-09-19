@@ -3,6 +3,7 @@
 import pysta
 import torch
 import numpy as np
+import sys
 import pickle
 pysta.reload()
 from pysta import basedir
@@ -150,5 +151,7 @@ if save:
     pickle.dump(example_rep_data, open(f"{basedir}/data/examples/example_rep_data.pickle", "wb"))
 
 
-
+print("\nFinished")
+sys.stdout.flush()
+    
 # %%

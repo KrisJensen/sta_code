@@ -11,6 +11,7 @@ from scipy.stats import pearsonr
 pysta.reload()
 from pysta import basedir
 ext = ".pdf"
+np.random.seed(0)
 
 #%% set font with arial .ttf file
 import matplotlib as mpl
@@ -25,10 +26,9 @@ mpl.rcParams['font.size'] = 8
 data = pickle.load(open(f"{basedir}/data/comparisons/performance_and_decoding_by_size.pickle", "rb"))
 sizes, perfs, decoding = data["sizes"], np.array(data["perfs"]), np.array(data["decoding"])
 cols = [plt.get_cmap("viridis")(s/np.amax(sizes)) for s in sizes]
-
 #%%
 
-ymin, ymax = 0.5, 0.95
+sizeticks = np.arange(0, 801, 200)
 
 plt.figure(figsize = (2.1, 1.7))
 xs = np.arange(decoding.shape[-1])+1
@@ -36,7 +36,7 @@ for isize, size in enumerate(sizes):
     plt.plot(decoding[isize, 0, :], label = f"N={size}", color = cols[isize])
 plt.xlabel("time in future", labelpad = 3.5)
 plt.ylabel("decoding accuracy", labelpad = 2.5)
-plt.ylim(ymin, ymax)
+plt.ylim(0.5, 0.91)
 plt.gca().spines[['right', 'top']].set_visible(False)
 plt.savefig(f"{pysta.basedir}/figures/size/acc_vs_time{ext}", bbox_inches = "tight", transparent = True)
 plt.show()
@@ -47,8 +47,9 @@ plt.figure(figsize = figsize)
 plt.scatter(sizes, decoding[:, 0, :].mean(-1), c = cols)
 plt.xlabel("network size", labelpad = 3.5)
 plt.ylabel("mean decoding", labelpad = 2.5)
-plt.xlim(0, 1040)
-plt.ylim(ymin, ymax)
+plt.xlim(0, 840)
+plt.ylim(0.5, 0.91)
+plt.xticks(sizeticks)
 plt.gca().spines[['right', 'top']].set_visible(False)
 plt.savefig(f"{pysta.basedir}/figures/size/acc_vs_size{ext}", bbox_inches = "tight", transparent = True)
 plt.show()
@@ -58,8 +59,9 @@ plt.figure(figsize = figsize)
 plt.scatter(sizes, perfs.mean(-1), c = cols)
 plt.xlabel("network size", labelpad = 3.5)
 plt.ylabel("performance", labelpad = 2.5)
-plt.xlim(0, 1040)
-plt.ylim(ymin, ymax)
+plt.ylim(0.5, 0.91)
+plt.xticks(sizeticks)
+plt.xlim(0, 840)
 plt.gca().spines[['right', 'top']].set_visible(False)
 plt.savefig(f"{pysta.basedir}/figures/size/perf_vs_size{ext}", bbox_inches = "tight", transparent = True)
 plt.show()
@@ -69,8 +71,8 @@ plt.figure(figsize = figsize)
 plt.scatter(decoding[:, 0, :].mean(-1), perfs.mean(-1), c = cols)
 plt.xlabel("mean decoding", labelpad = 3.5)
 plt.ylabel("performance", labelpad = 2.5)
-plt.ylim(0.6, ymax)
-plt.xlim(0.68, 0.9)
+plt.ylim(0.50, 0.91)
+plt.xlim(0.5, 0.91)
 plt.gca().spines[['right', 'top']].set_visible(False)
 plt.savefig(f"{pysta.basedir}/figures/size/acc_vs_perf{ext}", bbox_inches = "tight", transparent = True)
 plt.show()

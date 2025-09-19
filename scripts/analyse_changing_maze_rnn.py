@@ -389,7 +389,7 @@ if __name__ == "__main__":
         run_generalized_decoding(model_name)
         sys.stdout.flush()
 
-    print("Finished")
+    print("\nFinished")
     sys.stdout.flush()
 
 # %%

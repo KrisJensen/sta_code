@@ -12,6 +12,7 @@ import matplotlib as mpl
 from scipy.ndimage import gaussian_filter1d
 pysta.reload()
 ext = ".pdf"
+np.random.seed(0)
 
 #%% set font with arial .ttf file
 import matplotlib as mpl
@@ -23,7 +24,7 @@ mpl.rcParams['font.size'] = 8
 
 #%%
 
-model_name = "MazeEnv_L4_max6/landscape_changing-rew_dynamic-rew_constant-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout/model22"
+model_name = "MazeEnv_L4_max6/landscape_changing-rew_dynamic-rew_constant-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout/model35"
 datadir = f"{basedir}/data/rnn_analyses/" + "_".join(model_name.split("/")) + "_"
 datadir_sta = f"{basedir}/data/rnn_analyses/sta_" + "_".join(model_name.split("/")) + "_"
 
@@ -51,9 +52,9 @@ for ipath, path in enumerate(paths):
     locs = np.array(pysta.maze_utils.index_to_loc(np.array(path), L)).astype(float)
     smooth_locs = gaussian_filter1d(np.repeat(locs, 6, axis = -1), 2, axis = -1, mode = "nearest").T
     if ipath == 0:
-        ax.plot(smooth_locs[:, 0], smooth_locs[:, 1], color = plt.get_cmap("viridis")(0.9), lw = 3.5, ls = "-", zorder = 10, label = "better")
+        ax.plot(smooth_locs[:, 0], smooth_locs[:, 1], color = plt.get_cmap("viridis")(1.0*0.9), lw = 3.5, ls = "-", zorder = 10, label = "better")
     else:
-        ax.plot(smooth_locs[:, 0], smooth_locs[:, 1], color = plt.get_cmap("viridis")(0.7), lw = 3.5, ls = "-", label = "worse")#dashes=(3, 2.5))
+        ax.plot(smooth_locs[:, 0], smooth_locs[:, 1], color = plt.get_cmap("viridis")(0.8*0.9), lw = 3.5, ls = "-", label = "worse")#dashes=(3, 2.5))
 #ax.plot(smooth_locs[:, 0], smooth_locs[:,1])
 ax.axis("off")
 plt.legend(frameon = False, loc = "upper center", bbox_to_anchor = (0.5, 1.18), ncol = 2)
@@ -67,7 +68,7 @@ ind = 0
 to_plot = [proj_old_r, proj_new_rs[1], proj_new_rs[-1]]
 #to_plot = [sta_old_r, sta_new_rs[1], sta_new_rs[-1]]
 for ir, r in enumerate(to_plot):
-    ax = pysta.plot_utils.plot_perspective_attractor(walls, r[ind][:, :], plot_proj = True, cmap = "YlOrRd", figsize = (3.5,2.2), aspect = (1,1,4.2), view_init = (-30,-10,-90),
+    ax = pysta.plot_utils.plot_perspective_attractor(walls, r[ind][:, :], plot_proj = False, cmap = "YlOrRd", figsize = (3.5,2.2), aspect = (1,1,4.2), view_init = (-30,-10,-90),
     filename = f"{basedir}/figures/attractor/example_stim{ir}.pdf",  show = True, bbox_inches = mpl.transforms.Bbox([[0.75,0.7], [2.8,1.54]]))
 
 
