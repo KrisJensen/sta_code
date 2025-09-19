@@ -9,53 +9,8 @@ import sys
 import pickle
 from pysta import basedir
 import torch
-
-#%%
-
 np.random.seed(0)
 torch.manual_seed(0)
-
-sta, ctrl = False, False
-
-#%%
-
-
-# sta, ctrl = False, False
-# pysta.reload()
-# model_name = "MazeEnv_L4_max6/landscape_changing-rew_dynamic-rew_constant-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout/model33"
-# paths = [[12,8,9,5,6,6,6], [12,13,14,10,6,6,6]]
-# stim_t = 2
-
-# rnn, figdir, datadir = pysta.utils.load_model(model_name) # load the model
-# pysta.plot_utils.plot_flat_frame(rnn.env.walls[0], show = True)
-
-#%%
-
-
-sta, ctrl = False, False
-pysta.reload()
-model_name = "MazeEnv_L4_max6/landscape_changing-rew_dynamic-rew_constant-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout/model32"
-paths = [[3,7,11,10,6,6,6], [3,2,1,5,6,6,6]]
-stim_t = 2
-
-rnn, figdir, datadir = pysta.utils.load_model(model_name) # load the model
-pysta.plot_utils.plot_flat_frame(rnn.env.walls[0], show = True)
-
-
-# #%%
-
-
-# sta, ctrl = False, False
-# pysta.reload()
-# model_name = "MazeEnv_L4_max6/landscape_changing-rew_dynamic-rew_constant-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout/model35"
-# paths = [[0,4,8,9,10,10,10], [0,1,2,6,10,10,10]]
-# stim_t = 2
-
-# rnn, figdir, datadir = pysta.utils.load_model(model_name) # load the model
-# pysta.plot_utils.plot_flat_frame(rnn.env.walls[0], show = True)
-
-# paths = [[0,4,8,9,10,10,10], [0,1,2,6,10,10,10]],
-
 
 
 #%%
@@ -108,7 +63,7 @@ def run_attractor_analyses(model_name, sta = False, ctrl = False,
         stim_dir = torch.tensor(Csubs[stim_t, stim_loc])[:, None]
 
         num_initial_steps = np.amax(rnn.env.planning_steps)
-        num_p1, num_p2, num_p3 = 10,10,10
+        num_p1, num_p2, num_p3 = 10, 10, 10
 
     if ctrl:
         stim_dir = torch.randn(stim_dir.shape)
@@ -169,8 +124,6 @@ def run_attractor_analyses(model_name, sta = False, ctrl = False,
     walls = rnn.env.walls[0].numpy()
     num_ps = [num_p1, num_p2, num_p3]
     rnn.all_acts = [[], [], []]
-    
-    
 
     #%%
     
@@ -181,36 +134,8 @@ def run_attractor_analyses(model_name, sta = False, ctrl = False,
 
     ctrlstr = "_ctrl" if ctrl else ""
     pickle.dump(result, open(f"{datadir}fixed_point_analyses{ctrlstr}.p", "wb"))
-
-
-#%%
-def plot_stuff():
-    #%% a bunch of plotting stuff that should be deleted eventually
-
-    ind = 0
-    walls = rnn.env.walls[0].numpy()
-    for ir, r in enumerate(([old_r] + new_rs)[::4]):
-        vmap = decode(r[ind].numpy())
-        pysta.plot_utils.plot_perspective_attractor(walls, vmap, filename = f"{basedir}{ir}.pdf", plot_proj = True, cmap = "YlOrRd", figsize = (5.5,2.2), aspect = (1,1,4.2), view_init = (-22,-10,-90))
-
-    plt.figure(figsize = (2,1.5))
-    # plt.plot(np.arange(len(deltas)), deltas.mean(-1))
-    # plt.plot(np.arange(len(relax_deltas)), relax_deltas.mean(-1))
-    plt.plot(np.arange(len(deltas)), deltas[:, ind])
-    plt.plot(np.arange(len(relax_deltas)), relax_deltas[:, ind])
-    plt.xlabel("perturbation strength")
-    plt.ylabel("rate change")
-    plt.savefig(f"{basedir}/deltas.pdf", bbox_inches = "tight")
-    plt.show()
-    plt.close()
-
-    all_projs = np.array([[decode(all_all_acts[i, j, ind, ...]) for j in range(all_all_acts.shape[1])] for i in range(all_all_acts.shape[0])])
-    diffs = np.abs(all_projs - all_projs[:, :1, ...]).sum((-1,-2))
-    plt.figure()
-    plt.plot(diffs[::4, :].T)
-    plt.savefig(f"{basedir}/diffs.pdf", bbox_inches = "tight")
-    plt.show()
-
+    
+    return
 
 
 # %%
@@ -224,13 +149,6 @@ if __name__ == "__main__":
 
     model_name = "MazeEnv_L4_max6/landscape_changing-rew_dynamic-rew_constant-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout/model35"
     paths = [[0,4,8,9,10,10,10], [0,1,2,6,10,10,10]]
-    #paths = [[0,1,2,6,10,10,10], [0,4,8,9,10,10,10]]
-
-    # model_name = "MazeEnv_L4_max6/landscape_changing-rew_dynamic-rew_constant-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout/model33"
-    # paths = [[12,8,9,5,6,6,6], [12,13,14,10,6,6,6]]
-    
-    # model_name = "MazeEnv_L4_max6/landscape_changing-rew_dynamic-rew_constant-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout/model32"
-    # paths = [[3,2,1,5,6,6,6], [3,7,11,10,6,6,6]]
 
     print(f"Running RNN attractor analysis for {model_name}.")
     sys.stdout.flush()

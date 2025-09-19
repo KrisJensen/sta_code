@@ -82,8 +82,8 @@ always_same[(adj_stds == 0).reshape(16, 16)] = np.nan
 figsize = (1.2, 1.2)
 for iind, ind in enumerate([ind1, ind2]): # for each example
     # plot the maze structure
-    pysta.plot_utils.plot_flat_frame(filename = f"{basefigdir}ex_maze{iind}{ext}", figsize = figsize, vmap = np.zeros((4,4)), vmin = -1, vmax = 1, cmap = "coolwarm", walls = walls[ind], show = True)
-
+    pysta.plot_utils.plot_flat_frame(filename = f"{basefigdir}ex_maze{iind}{ext}", figsize = figsize, vmap = np.zeros((4,4))+0.15, vmin = 0, vmax = 1, cmap = "Greys", walls = walls[ind], show = True)
+    
     # plot the true adjacency matrix
     plt.figure(figsize = figsize)
     plt.imshow(changing_maze_results["adjs"][ind] + always_same, cmap = "coolwarm")

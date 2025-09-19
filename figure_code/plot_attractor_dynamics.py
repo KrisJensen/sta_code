@@ -25,8 +25,6 @@ mpl.rcParams['font.size'] = 8
 #%%
 
 model_name = "MazeEnv_L4_max6/landscape_changing-rew_dynamic-rew_constant-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout/model35"
-# model_name = "MazeEnv_L4_max6/landscape_changing-rew_dynamic-rew_constant-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout/model33"
-# model_name = "MazeEnv_L4_max6/landscape_changing-rew_dynamic-rew_constant-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout/model32"
 datadir = f"{basedir}/data/rnn_analyses/" + "_".join(model_name.split("/")) + "_"
 datadir_sta = f"{basedir}/data/rnn_analyses/sta_" + "_".join(model_name.split("/")) + "_"
 
@@ -37,7 +35,6 @@ ctrl_result = pickle.load(open(f"{datadir}fixed_point_analyses_ctrl.p", "rb"))
 #%%
 proj_all_acts, proj_old_r, proj_new_rs, deltas, relax_deltas, walls, strengths, all_all_acts, old_r, deltas_raw, num_ps, paths = [result[k] for k in ["proj_all_acts", "proj_old_r", "proj_new_rs", "deltas", "relax_deltas", "walls", "strengths", "all_all_acts", "old_r", "deltas_raw", "num_ps", "paths"]]
 sta_deltas, sta_relax_deltas, sta_strengths, sta_all_acts, sta_old_r, sta_strengths, sta_new_rs = [sta_result[k] for k in ["deltas", "relax_deltas", "strengths", "all_all_acts", "old_r", "strengths", "proj_new_rs"]]
-
 ctrl_deltas, ctrl_deltas_raw = [ctrl_result[k] for k in ["deltas", "deltas_raw"]]
 
 #%% plot a scaffold with the two paths
@@ -46,7 +43,6 @@ adjacency = pysta.maze_utils.compute_adjacency(walls)[0].numpy()
 num_locs = adjacency.shape[0]
 L = int(np.sqrt(num_locs))
 
-
 plt.figure(figsize = (1.6, 1.6))
 ax = plt.gca()
 pysta.plot_utils.plot_maze_scaffold(adjacency, ax = ax, s = 350, lw = 6)
@@ -54,10 +50,9 @@ for ipath, path in enumerate(paths):
     locs = np.array(pysta.maze_utils.index_to_loc(np.array(path), L)).astype(float)
     smooth_locs = gaussian_filter1d(np.repeat(locs, 6, axis = -1), 2, axis = -1, mode = "nearest").T
     if ipath == 0:
-        ax.plot(smooth_locs[:, 0], smooth_locs[:, 1], color = plt.get_cmap("viridis")(1.0*0.9), lw = 3.5, ls = "-", zorder = 10, label = "better")
+        ax.plot(smooth_locs[:, 0], smooth_locs[:, 1], color = plt.get_cmap("viridis")(0.5+0.5*1.0*0.9), lw = 3.5, ls = "-", zorder = 10, label = "better")
     else:
-        ax.plot(smooth_locs[:, 0], smooth_locs[:, 1], color = plt.get_cmap("viridis")(0.8*0.9), lw = 3.5, ls = "-", label = "worse")#dashes=(3, 2.5))
-#ax.plot(smooth_locs[:, 0], smooth_locs[:,1])
+        ax.plot(smooth_locs[:, 0], smooth_locs[:, 1], color = plt.get_cmap("viridis")(0.5+0.5*0.7*0.9), lw = 3.5, ls = "-", label = "worse")#dashes=(3, 2.5))
 ax.axis("off")
 plt.legend(frameon = False, loc = "upper center", bbox_to_anchor = (0.5, 1.18), ncol = 2)
 plt.savefig(f"{basedir}/figures/attractor/paths{ext}", bbox_inches = "tight", transparent = True)
@@ -68,7 +63,6 @@ plt.close()
 
 ind = 0
 to_plot = [proj_old_r, proj_new_rs[1], proj_new_rs[-1]]
-#to_plot = [sta_old_r, sta_new_rs[1], sta_new_rs[-1]]
 for ir, r in enumerate(to_plot):
     ax = pysta.plot_utils.plot_perspective_attractor(walls, r[ind][:-1, :], plot_proj = False, cmap = "YlOrRd", figsize = (3.5,2.2), aspect = (1,1,4.2), view_init = (-30,-10,-90),
     filename = f"{basedir}/figures/attractor/example_stim{ir}.pdf",  show = True, bbox_inches = mpl.transforms.Bbox([[0.75,0.7], [2.8,1.54]]))
@@ -93,8 +87,8 @@ sta_col = np.minimum(1.0, rnn_col*1.5)
 sta_col = np.array([49, 204, 199])/255
 cols = [sta_col, rnn_col, np.ones(3)*0.6]
 
-yticks = np.arange(0,11,2)
-ymin, ymax = -0.2, np.amax(plot_deltas)*1.05
+yticks = np.arange(0,7,2)
+ymin, ymax = -0.2, np.amax(plot_deltas)*1.08
 
 plt.figure(figsize = (1.5, 1.5))
 plt.plot(sta_xs, sta_plot_deltas, label = "STA", color = cols[0], zorder = 1)
@@ -102,7 +96,7 @@ plt.plot(xs, plot_deltas, label = "RNN", color = cols[1], zorder = 2)
 plt.plot(xs, plot_deltas_ctrl, color = cols[2], label = "ctrl", zorder = 0)
 plt.gca().spines[['right', 'top']].set_visible(False)
 plt.xlabel("stimulation strength", labelpad = 3.5)
-plt.ylabel("representational\nchange", labelpad = 1)
+plt.ylabel("representational\nchange", labelpad = 3.5)
 plt.yticks(yticks)
 plt.xticks([])
 plt.xlim(0, 1)
@@ -135,7 +129,7 @@ plt.close()
 #%% now plot example changes over time
 
 diffs = np.abs(proj_all_acts - proj_old_r[None, None, :proj_all_acts.shape[2], ...]).sum((-1, -2))
-strength_inds = np.array([0, 5, 8, 12, len(diffs)-1])
+strength_inds = np.array([0, 5, 13, 22, len(diffs)-3])
 
 T = proj_all_acts.shape[1]
 ts = np.linspace(0, 1, T)
@@ -150,13 +144,12 @@ plt.gca().spines[['right', 'top']].set_visible(False)
 plt.xlabel("time", labelpad = 3.5)
 plt.ylim(ymin, ymax)
 plt.xlim(0, 1)
-plt.ylabel("representational\nchange", labelpad = 1)
+plt.ylabel("representational\nchange", labelpad = 3.5)
 plt.yticks(yticks)
 plt.xticks([])
 plt.savefig(f"{basedir}/figures/attractor/change_by_time.pdf", bbox_inches = "tight", transparent = True)
 plt.show()
 plt.close()
-
 
 #%% now plot example raw neural trajectories
 
@@ -180,11 +173,9 @@ plt.savefig(f"{basedir}/figures/attractor/raw_by_time.pdf", bbox_inches = "tight
 plt.show()
 plt.close()
 
-
 #%% and for the STA
-sta_strength_inds = np.array([0, 3,6,9])
+sta_strength_inds = np.array([0, 3,6,8,sta_all_acts.shape[0]-1])
 sta_diffs_raw = ((sta_all_acts - sta_old_r.numpy()[None, None, :sta_all_acts.shape[2], ...])**2).sum((-1, -2))
-#sta_diffs_raw = ((np.log(sta_all_acts) - np.log(sta_old_r.numpy()[None, None, ...]))**2).sum((-1, -2))
 sta_ts = np.linspace(0, 1, sta_diffs_raw.shape[1])
 
 plt.figure(figsize = (2,1.5))
@@ -204,7 +195,6 @@ plt.xticks([])
 plt.savefig(f"{basedir}/figures/attractor/sta_by_time.pdf", bbox_inches = "tight", transparent = True)
 plt.show()
 plt.close()
-
 
 #%% plot a colorbar
 
