@@ -512,7 +512,7 @@ class SpaceTimeAttractor(BaseAgent):
     classname = "SpaceTimeAttractor"
     label = "sta"
     
-    def __init__(self, env, beta = 9.0, tau = 50, iters_per_action = 400, shift_time = 2.0, adj_noise = 1e-2, **kwargs):
+    def __init__(self, env, beta = 9.0, tau = 50, iters_per_action = 400, shift_time = 2.0, rec_noise = 1e-1, adj_noise = 1e-2, **kwargs):
         """
         Spacetime attractor that optimises a reward function
 
@@ -538,6 +538,7 @@ class SpaceTimeAttractor(BaseAgent):
         kwargs["tau"] = tau
         kwargs["iters_per_action"] = iters_per_action
         super(SpaceTimeAttractor, self).__init__(env, **kwargs)
+        self.rec_noise = rec_noise # recurrent noise to ensure robustness
     
     def phi(self, x):
         """
@@ -609,7 +610,6 @@ class SpaceTimeAttractor(BaseAgent):
     def step(self, observation):
 
         clip_minval = torch.tensor(-100) # minimum value of logps
-        self.rec_noise = 1e-1 # recurrent noise to ensure robustness
 
         # now extract reward function from observation
         logrews = self.obs_to_rew_func(observation.clone(), flat = True) # flatten for each trial (batch, modules*locs)

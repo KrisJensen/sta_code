@@ -158,10 +158,11 @@ pysta.plot_utils.plot_perspective_attractor(walls, vmap, vmin = 0, vmax = 1,
 
 #%% future rewards
 
-vmin, vmax = -2.3, 1.15
+vmin, vmax, cmap = -2.3, 1.15, "viridis"
+vmin, vmax, cmap = -1.2,2.2,"Greens"
 plt.figure(figsize = (1.0, 1.0))
 ax = plt.gca()
-pysta.plot_utils.plot_flat_frame(walls, ax = ax, filename = None, vmap = rs1, cmap = "viridis", vmin = vmin, vmax = vmax, show = False, lw = 3.0)
+pysta.plot_utils.plot_flat_frame(walls, ax = ax, filename = None, vmap = rs1, cmap = cmap, vmin = vmin, vmax = vmax, show = False, lw = 3.0)
 plt.scatter([2,], [1,], marker = ".", color = stim_col, s = 380, zorder = 200)
 plt.savefig(f"{basefigdir}schematic_rewards{ext}", bbox_inches = "tight", transparent = True)
 plt.show()

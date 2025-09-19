@@ -42,19 +42,21 @@ ctrl_deltas, ctrl_deltas_raw = [ctrl_result[k] for k in ["deltas", "deltas_raw"]
 adjacency = pysta.maze_utils.compute_adjacency(walls)[0].numpy()
 num_locs = adjacency.shape[0]
 L = int(np.sqrt(num_locs))
+vmin, vmax, cmap = -2.3, 1.15, "viridis"
+vmin, vmax, cmap = -1.2,2.2,"Greens"
 
 plt.figure(figsize = (1.6, 1.6))
 ax = plt.gca()
 pysta.plot_utils.plot_maze_scaffold(adjacency, ax = ax, s = 350, lw = 6)
-for ipath, path in enumerate(paths):
+for ipath, path in enumerate(paths[::-1]):
     locs = np.array(pysta.maze_utils.index_to_loc(np.array(path), L)).astype(float)
     smooth_locs = gaussian_filter1d(np.repeat(locs, 6, axis = -1), 2, axis = -1, mode = "nearest").T
     if ipath == 0:
-        ax.plot(smooth_locs[:, 0], smooth_locs[:, 1], color = plt.get_cmap("viridis")(0.5+0.5*1.0*0.9), lw = 3.5, ls = "-", zorder = 10, label = "better")
+        ax.plot(smooth_locs[:, 0], smooth_locs[:, 1], color = plt.get_cmap(cmap)((1.1-vmin) / (vmax - vmin)), lw = 3.5, ls = "-", zorder = 10, label = "better")
     else:
-        ax.plot(smooth_locs[:, 0], smooth_locs[:, 1], color = plt.get_cmap("viridis")(0.5+0.5*0.7*0.9), lw = 3.5, ls = "-", label = "worse")#dashes=(3, 2.5))
+        ax.plot(smooth_locs[:, 0], smooth_locs[:, 1], color = plt.get_cmap(cmap)((0.3-vmin)/(vmax-vmin)), lw = 3.5, ls = "-", label = "worse")#dashes=(3, 2.5))
 ax.axis("off")
-plt.legend(frameon = False, loc = "upper center", bbox_to_anchor = (0.5, 1.18), ncol = 2)
+plt.legend(frameon = False, loc = "upper center", bbox_to_anchor = (0.5, 1.18), ncol = 2, columnspacing = 1.2, handlelength = 1.5)
 plt.savefig(f"{basedir}/figures/attractor/paths{ext}", bbox_inches = "tight", transparent = True)
 plt.show()
 plt.close()

@@ -21,10 +21,12 @@ mpl.rcParams['font.family'] = "Arial"
 mpl.rcParams['font.size'] = 8
 
 #%%
-
+pysta.reload()
 data = pickle.load(open(f"{basedir}/data/examples/example_task_data.pickle", "rb"))
 cmap = "viridis"
 vmin, vmax = 2.3, 1.15
+cmap = "Greens"
+vmin, vmax = 0.3, 3.2
 no_loc = True
 figsize, mouse_size, cheese_size = (3.30/2.54, 3.30/2.54), 320, 280
 
@@ -52,7 +54,8 @@ plt.savefig(f"{basedir}/figures/handcrafted_examples/static_goal2{ext}", bbox_in
 plt.show()
 plt.close()
 
-
+#%%
+vmin, vmax = 1.2,2.2
 # plot reward landscape at different times
 rew_land = data["rew_landscape"]
 for i in range(4):
@@ -86,15 +89,16 @@ for agent in ["td", "sr", "sta"]:
         
         if agent == "sta":
             kwargs["vmap"] = kwargs["vmap"][:-1, :]
-            pysta.plot_utils.plot_perspective_attractor(filename = fname, **kwargs, cmap = "YlOrRd", vmin = -0.15, vmax = 1.2, show = True, goal_inds = range((0 if env == "moving" else 1), kwargs["vmap"].shape[0]), bbox_inches = mpl.transforms.Bbox([[2.5,1.6], [5.9,2.8]]), figsize = (8.22,4.4))
+            pysta.plot_utils.plot_perspective_attractor(filename = fname, **kwargs, cmap = "YlOrRd", vmin = -0.15, vmax = 1.3, show = True, goal_inds = range((0 if env == "moving" else 1), kwargs["vmap"].shape[0]), bbox_inches = mpl.transforms.Bbox([[2.5,1.6], [5.9,2.8]]), figsize = (8.22,4.4))
         else:
-            minval, maxval = kwargs["vmap"].min(), kwargs["vmap"].max()
-            vmin, vmax = (0.15, 0.20) if agent+env in ["tdstatic", "srstatic", "srchanging"] else (0.5,2.4)
-            vmin, vmax = minval - vmin*(maxval - minval), maxval + vmax*(maxval - minval)
             if agent == "td":
                 vmin, vmax = (0.45*0.85, 1.1) if env == "static" else (0.541, 0.6)
             if agent == "sr":
                 vmin, vmax = 0.2, 4.0
+            if agent == "td":
+                vmin, vmax = (0.45*0.85, 1.3) if env == "static" else (0.541, 0.6)
+            if agent == "sr":
+                vmin, vmax = 0.2, 5.0
             print(env, agent, minval, maxval)
             pysta.plot_utils.plot_flat_frame(filename = fname, **kwargs, cmap = "YlOrRd", vmin = vmin, vmax = vmax, show = True, figsize = figsize, mouse_size = mouse_size, cheese_size = cheese_size)
 

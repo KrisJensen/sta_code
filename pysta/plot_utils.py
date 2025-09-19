@@ -106,6 +106,7 @@ def plot_flat_frame(walls, figsize = (1.5,1.5), filename = None, cheese_size = 3
             g1 = goal_loc[:, i_g+1]
             col, alpha = np.ones(3)*0.5, 1.0
             col = np.array([222, 155, 0])/255
+            col = np.ones(3)*0.5
             arrow = (i_g == goal_loc.shape[-1]-2)
             ax.arrow(g[0], g[1], g1[0]-g[0], g1[1]-g[1], color = col, alpha = alpha, length_includes_head = True, width = 0.1, head_width = 0.35*arrow, head_length = 0.45*arrow)
         ax.scatter(goal_loc[0, 0]-0.04, goal_loc[1, 0], color = "k", marker = cheese_marker, s = cheese_size, zorder = 99, lw = 0.75)
