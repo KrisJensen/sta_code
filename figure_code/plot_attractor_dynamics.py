@@ -25,6 +25,8 @@ mpl.rcParams['font.size'] = 8
 #%%
 
 model_name = "MazeEnv_L4_max6/landscape_changing-rew_dynamic-rew_constant-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout/model35"
+# model_name = "MazeEnv_L4_max6/landscape_changing-rew_dynamic-rew_constant-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout/model33"
+# model_name = "MazeEnv_L4_max6/landscape_changing-rew_dynamic-rew_constant-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout/model32"
 datadir = f"{basedir}/data/rnn_analyses/" + "_".join(model_name.split("/")) + "_"
 datadir_sta = f"{basedir}/data/rnn_analyses/sta_" + "_".join(model_name.split("/")) + "_"
 
@@ -68,7 +70,7 @@ ind = 0
 to_plot = [proj_old_r, proj_new_rs[1], proj_new_rs[-1]]
 #to_plot = [sta_old_r, sta_new_rs[1], sta_new_rs[-1]]
 for ir, r in enumerate(to_plot):
-    ax = pysta.plot_utils.plot_perspective_attractor(walls, r[ind][:, :], plot_proj = False, cmap = "YlOrRd", figsize = (3.5,2.2), aspect = (1,1,4.2), view_init = (-30,-10,-90),
+    ax = pysta.plot_utils.plot_perspective_attractor(walls, r[ind][:-1, :], plot_proj = False, cmap = "YlOrRd", figsize = (3.5,2.2), aspect = (1,1,4.2), view_init = (-30,-10,-90),
     filename = f"{basedir}/figures/attractor/example_stim{ir}.pdf",  show = True, bbox_inches = mpl.transforms.Bbox([[0.75,0.7], [2.8,1.54]]))
 
 

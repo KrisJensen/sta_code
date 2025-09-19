@@ -8,6 +8,7 @@ import pysta
 import sys
 import pickle
 from pysta import basedir
+import torch
 
 #%%
 
@@ -28,6 +29,18 @@ sta, ctrl = False, False
 # rnn, figdir, datadir = pysta.utils.load_model(model_name) # load the model
 # pysta.plot_utils.plot_flat_frame(rnn.env.walls[0], show = True)
 
+#%%
+
+
+sta, ctrl = False, False
+pysta.reload()
+model_name = "MazeEnv_L4_max6/landscape_changing-rew_dynamic-rew_constant-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout/model32"
+paths = [[3,7,11,10,6,6,6], [3,2,1,5,6,6,6]]
+stim_t = 2
+
+rnn, figdir, datadir = pysta.utils.load_model(model_name) # load the model
+pysta.plot_utils.plot_flat_frame(rnn.env.walls[0], show = True)
+
 
 # #%%
 
@@ -41,7 +54,7 @@ sta, ctrl = False, False
 # rnn, figdir, datadir = pysta.utils.load_model(model_name) # load the model
 # pysta.plot_utils.plot_flat_frame(rnn.env.walls[0], show = True)
 
-
+# paths = [[0,4,8,9,10,10,10], [0,1,2,6,10,10,10]],
 
 
 
@@ -62,16 +75,14 @@ def run_attractor_analyses(model_name, sta = False, ctrl = False,
     rnn.env.rews[...] = -1.0
     for ipath, path in enumerate(paths):
         for i in range(len(path)):
-            rnn.env.rews[:, i, path[i]] = +0.73+0.27*ipath
-            rnn.env.rews[:, i, path[i]] = +0.7+0.2*ipath
-            rnn.env.rews[:, i, path[i]] = +0.8+0.2*ipath
+            rnn.env.rews[:, i, path[i]] = 0.7 + 0.3*ipath
     rnn.env.compute_value_function()
     rnn.env.loc[...] = paths[0][0]
 
     if sta:
         stim_dir = torch.zeros(rnn.Nrec, 1)
         stim_dir[stim_t*rnn.env.num_locs+stim_loc, 0] = 1
-        strengths = np.linspace(0, 420, 19)
+        strengths = np.linspace(0, 500, 19)
         num_initial_steps = 1
         num_p1, num_p2, num_p3 = 2,2,2
         
@@ -93,7 +104,7 @@ def run_attractor_analyses(model_name, sta = False, ctrl = False,
             return new_r
         
         strengths = np.concatenate([np.linspace(0, 2.0, 21), np.ones(1)*3.0])
-        strengths = np.linspace(0, 8.0, 31)
+        strengths = np.linspace(0, 10.0, 31)
         stim_dir = torch.tensor(Csubs[stim_t, stim_loc])[:, None]
 
         num_initial_steps = np.amax(rnn.env.planning_steps)
@@ -137,7 +148,6 @@ def run_attractor_analyses(model_name, sta = False, ctrl = False,
             rnn.step(x)
         relax_r = rnn.r.detach().clone()
 
-
         delta = np.abs(decode(new_r.numpy()) - decode(old_r.numpy())).sum((-1,-2))
         relax_delta = np.abs(decode(relax_r.numpy()) - decode(old_r.numpy())).sum((-1,-2))
         deltas.append(delta)
@@ -148,7 +158,7 @@ def run_attractor_analyses(model_name, sta = False, ctrl = False,
 
         print(strength, delta.mean(), relax_delta.mean())
         sys.stdout.flush()
-        all_all_acts.append(np.array(rnn.all_acts[0])[:, :10, ...])
+        all_all_acts.append(np.array(rnn.all_acts[0])[:, :5, ...])
 
     all_all_acts = np.array(all_all_acts)
 
@@ -212,15 +222,26 @@ if __name__ == "__main__":
     np.random.seed(seed)
     torch.manual_seed(seed)
 
+    model_name = "MazeEnv_L4_max6/landscape_changing-rew_dynamic-rew_constant-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout/model35"
+    paths = [[0,4,8,9,10,10,10], [0,1,2,6,10,10,10]]
+    #paths = [[0,1,2,6,10,10,10], [0,4,8,9,10,10,10]]
+
+    # model_name = "MazeEnv_L4_max6/landscape_changing-rew_dynamic-rew_constant-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout/model33"
+    # paths = [[12,8,9,5,6,6,6], [12,13,14,10,6,6,6]]
+    
+    # model_name = "MazeEnv_L4_max6/landscape_changing-rew_dynamic-rew_constant-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout/model32"
+    # paths = [[3,2,1,5,6,6,6], [3,7,11,10,6,6,6]]
+
     print(f"Running RNN attractor analysis for {model_name}.")
     sys.stdout.flush()
+    torch.set_grad_enabled(False)
     
     # run actual analysis
-    run_attractor_analyses(model_name, sta = False, ctrl = False)
+    run_attractor_analyses(model_name, sta = False, ctrl = False, paths = paths)
     # run for a control stimulus direction
-    run_attractor_analyses(model_name, sta = False, ctrl = True)
+    run_attractor_analyses(model_name, sta = False, ctrl = True, paths = paths)
     # run on the handcrafted STA
-    run_attractor_analyses(model_name, sta = True, ctrl = False)
+    run_attractor_analyses(model_name, sta = True, ctrl = False, paths = paths)
 
     print("\nFinished")
     sys.stdout.flush()
