@@ -27,6 +27,11 @@ mpl.rcParams['font.size'] = 8
     
 #%% plot scaffolds with trajectories on top
 from pysta.utils import schematic_walls as walls
+ex_seed = 31
+example_model = f"MazeEnv_L4_max6/landscape_changing-rew_dynamic-rew_constant-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout/model{ex_seed}"
+rnn = pysta.utils.load_model(example_model)[0]
+walls = rnn.env.walls[0].numpy()
+
 num_locs = walls.shape[0]
 L = int(np.sqrt(num_locs))
 adjacency = pysta.maze_utils.compute_adjacency(walls)[0].numpy()
@@ -35,13 +40,26 @@ all_locs = [[(1,2), (2,2), (2,1), (1,1), (1,0)],
             [(2,2), (2,1), (1,1), (1,0)],
             [(2,0), (1,0), (1,1), (0,1)]] # trajectories
 
+all_locs = [
+    [(1,1), (2,1), (2,2), (3,2), (3,1)],
+    [(2,1), (2,2), (3,2), (3,1)],
+    [(3,3), (3,2), (2,2), (1,2)]
+]
+
+all_locs = [
+    [(1,2), (2,2), (3,2), (3,1), (3,0)],
+    [(2,2), (3,2), (3,1), (3,0)],
+    [(2,0), (3,0), (3,1), (3,2)]
+]
+
+
 istarts = [0, 1, 0]
 for ilocs, locs in enumerate(all_locs):
     locs = np.array(locs).T.astype(float)
 
     plt.figure(figsize = (1.43,1.43))
     ax = plt.gca()
-    pysta.plot_utils.plot_maze_scaffold(adjacency, ax = ax, s = 450, lw = 7)
+    pysta.plot_utils.plot_maze_scaffold(adjacency, ax = ax, s = 250, lw = 5)
 
     smooth_locs = gaussian_filter1d(np.repeat(locs, 6, axis = -1), 2, axis = -1, mode = "nearest").T
     chunks = np.array_split(np.arange(len(smooth_locs)), locs.shape[-1])
@@ -49,7 +67,7 @@ for ilocs, locs in enumerate(all_locs):
     for ichunk, chunk in enumerate(chunks):
         if ichunk < len(chunks)-1:
             chunk = np.concatenate([chunk, chunks[ichunk+1][:1]])
-        ax.plot(smooth_locs[chunk, 0], smooth_locs[chunk, 1], color = cols[ichunk], lw = 5)
+        ax.plot(smooth_locs[chunk, 0], smooth_locs[chunk, 1], color = cols[ichunk], lw = 6)
 
     #ax.plot(smooth_locs[:, 0], smooth_locs[:,1])
     ax.axis("off")
@@ -84,6 +102,35 @@ for ipath, locs in enumerate(all_locs):
     plt.show()
     plt.close()
     
+
+ #%% and plot an example 'space-by-time' reward function
+
+np.random.seed(1)
+torch.manual_seed(1)
+
+env = pysta.envs.MazeEnv(side_length = rnn.env.side_length, max_steps = 3, changing_trial_rew = True, batch_size = 1)
+env.walls[0, ...] = torch.tensor(walls[...])
+
+path = [6, 10, 14,13]
+optimal = False
+# make sure to sample a value function that shares the same optimal path
+while not optimal:
+    env.reset()
+    vs = env.vs[0].detach().numpy()
+    optimal = True
+    for i in range(len(path)-1):
+        adjacent_locs = np.where(adjacency[path[i]])[0]
+        if adjacent_locs[np.argmax(vs[i+1, adjacent_locs])] != path[i+1]:
+            optimal = False
+
+vs = env.vs.detach().numpy()[0]
+vs = ((vs - vs.mean(-1)[:, None]) / vs.std(-1)[:, None]) # normalize within each subspace
+
+ax = pysta.plot_utils.plot_perspective_attractor(walls, vs, vmin = -1.5, vmax = 2, filename = None, plot_proj = False, cmap = "YlOrRd", figsize = (3.5,2.2), aspect = (1,1,2.2), view_init = (-22,-10,-90))
+plt.savefig(f"{basedir}/figures/rnn_decoding/value_function{ext}", bbox_inches = mpl.transforms.Bbox([[0.90,0.55], [2.7,1.65]]), transparent = True)
+plt.show()
+plt.close()
+
 
 #%% plot an example RNN
 
@@ -147,33 +194,4 @@ plt.show()
 plt.close()
     
     
- #%% and plot an example 'space-by-time' reward function
-
-np.random.seed(0)
-torch.manual_seed(0)
-
-env = pysta.envs.MazeEnv(side_length = 3, max_steps = 3, changing_trial_rew = True, batch_size = 1)
-env.walls[0, ...] = torch.tensor(walls[...])
-
-path = [1,4,3,6]
-optimal = False
-# make sure to sample a value function that shares the same optimal path
-while not optimal:
-    env.reset()
-    vs = env.vs[0].detach().numpy()
-    optimal = True
-    for i in range(len(path)-1):
-        adjacent_locs = np.where(adjacency[path[i]])[0]
-        if adjacent_locs[np.argmax(vs[i+1, adjacent_locs])] != path[i+1]:
-            optimal = False
-
-vs = env.vs.detach().numpy()[0]
-vs = ((vs - vs.mean(-1)[:, None]) / vs.std(-1)[:, None]) # normalize within each subspace
-
-ax = pysta.plot_utils.plot_perspective_attractor(walls, vs, filename = None, plot_proj = False, cmap = "YlOrRd", figsize = (3.5,2.2), aspect = (1,1,2.2), view_init = (-22,-10,-90))
-plt.savefig(f"{basedir}/figures/rnn_decoding/value_function{ext}", bbox_inches = mpl.transforms.Bbox([[0.90,0.55], [2.7,1.65]]), transparent = True)
-plt.show()
-plt.close()
-
-
 # %%
