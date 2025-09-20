@@ -28,8 +28,7 @@ class BaseAgent(nn.Module):
         force_optimal : bool
             Only allow optimal actions. If there are multiple actions, renormalize the policy over these.
         iters_per_action : int or list of ints
-            Number of RNN iterations to run for each step of the environment.
-            This get's multiplied with 'env.initial_iters' for the true number of planning RNN iterations.
+            Number of RNN iterations to run for each environment iteration.
         tau : float
             timescale of the dynamics. r_{t+1} = (1-1/tau) * r_t + (1/tau) * f(r_t, x_{t+1})
         """
@@ -51,7 +50,6 @@ class BaseAgent(nn.Module):
         self.Nout = self.env.output_dim # dimensionality of the policy we're learning
         self.Nin = self.env.obs_dim # dimensionality of the observations
 
-        
         # instantiate parameters
         self.initialise_weights()
         
@@ -59,7 +57,6 @@ class BaseAgent(nn.Module):
         self.reset()
         
         return
-        
         
     def initialise_weights(self):
         """
@@ -69,9 +66,9 @@ class BaseAgent(nn.Module):
     
     def allo_to_ego_pi(self, allo_pi):
         """
-        convert an allocentric policy to an egocentric policy by renormalizing over neighboring states
-        in this version, each action is given the non-normalized probability associated with the result state (instead of distributing the probability mass)
-        This is to ensure that the greedy actions agree
+        Convert an allocentric policy to an egocentric policy by renormalizing over neighboring states
+        In this version, each action is given the non-normalized probability associated with the resulting state (instead of distributing the probability mass)
+        This is done to ensure that the greedy actions agree
         """
         
         ego_pi = torch.zeros(allo_pi.shape[0], self.env.num_actions) # new egocentric policy
@@ -81,10 +78,9 @@ class BaseAgent(nn.Module):
             ego_pi[:, a] = allo_pi[self.env.batch_inds, new_locs_a] # what is the probability of going here
         return ego_pi / ego_pi.sum(-1, keepdims = True)
         
-
     @property
     def name(self):
-        """generates a string representation of the agent"""
+        """Generates a string representation of the agent"""
         if type(self.iters_per_action) in [int, np.int32, np.int64]:
             iter_str = f"iter{self.iters_per_action}"
         else:
@@ -92,22 +88,21 @@ class BaseAgent(nn.Module):
 
         tau_str = f"tau{self.tau}"
         force_str = "opt" if self.force_optimal else "agent"
-        #return f"{self.classname}/{iter_str}/{tau_str}/{force_str}"
         return f"{self.classname}/{iter_str}_{tau_str}_{force_str}"
 
     def reset(self):
         """
-        reset the agent.
-        sets the initial condition and empties caches storing data.
+        Reset the agent.
+        This function sets the initial condition and empties caches storing data.
         """
         
-        # no gradients for setting environment
+        # no gradients for resetting environment
         with torch.no_grad():
             self.env.reset() # reset environment state
 
-            # also instantiate some lists to store data along the way
-            self.store = [] # store many things
-            self.all_acts = [[], [], []] # also store in between environment update steps
+            # also initialise some lists to store data along the way
+            self.store = [] # store many things at the time of each action
+            self.all_acts = [[], [], []] # also store some information for dynamics in between actions
             
         # need gradients for setting initial z
         self.z = torch.zeros(torch.Size([self.env.batch])+self.z0.shape, device = self.z0.device) + self.z0[None, ...]
@@ -118,14 +113,14 @@ class BaseAgent(nn.Module):
         self.weight_loss = self.env.batch * self.calc_parameter_reg() # parameter regularization
         self.rate_loss = self.calc_activity_reg() # rate regularization
         self.ent_loss = torch.tensor(0.0) # entropy regularization
-        self.update_optimal_actions()
+        self.update_optimal_actions() # cache optimal actions
         
         return
     
     def sample_action(self):
         """
-        Samples an action for each trial in a batch from the current policy.
-        Note that 'self.action' is the actual chosen action.
+        This function samples an action for each trial in a batch from the current policy.
+        Note that 'self.action' is the action chosen by an unconstrained agent.
         'self.env_action' is the action passed to the environment and can be different if we enforce optimality.
         We distinguish between the two because e.g. accuracies are still computed from the sampled action.
 
@@ -139,11 +134,11 @@ class BaseAgent(nn.Module):
         with torch.no_grad():
             if self.env.output_format == "allocentric":
                 adj = self.env.adjacency[self.env.batch_inds, self.env.loc, :] # renormalize over adjacent states
-                assert adj.sum(-1).min() >= 2 # should have adjacent states
-                pi = (self.pi+1e-20) * adj # add some jitter to make sure policy is not exactly zero
-                pi = pi/pi.sum(-1, keepdims = True)
+                assert adj.sum(-1).min() >= 2 # we should always have adjacent states
+                pi = (self.pi+1e-20) * adj # add some jitter to make sure the policy is not exactly zero. Otherwise we sometimes run into nans
+                pi = pi/pi.sum(-1, keepdims = True) # normalise
             else:
-                pi = self.pi # already in egocentric space, everything is possible
+                pi = self.pi # if we're already in egocentric space, everything is possible
                 
             if self.greedy: # pick the most likely action
                 self.action = torch.argmax(pi, -1)
@@ -151,13 +146,14 @@ class BaseAgent(nn.Module):
                 try:
                     self.action = torch.multinomial(pi, 1)[..., 0]
                 except RuntimeError:
+                    # something went wrong, so we save the current state of the agent for debugging.
+                    # This may happen if the policy becomes near-deterministic, and it can often be resolved by increasing the entropy regularisation.
                     print(pi.min(), pi.max(), self.pi.min(), self.pi.max(), self.logpi.min(), self.logpi.max())
-
                     pickle.dump(self, open("./temp.p", "wb"))
                     raise Error
                 
             if self.force_optimal: # optionally renormalize over optimal actions first
-                # add small epsilon in case there are no optimal actions -> uniform policy
+                # add small epsilon in case there are no optimal actions -> uniform policy (e.g. if the goal is too far away to be reached within the trial)
                 opt_pis = pi * self.optimal_actions + torch.rand(pi.shape)*1e-20
                 if self.greedy: # pick most likely action
                     self.env_action = torch.argmax(opt_pis, -1)
@@ -170,8 +166,7 @@ class BaseAgent(nn.Module):
     
     def step(self, observation):
         """
-        Perform one 'update step'
-        Here, an update step corresponds to all the computations happening for one environment step.
+        Perform all the computations happening before the next environment update step
         This can include multiple iterations of recurrent network dynamics.
 
         Parameters
@@ -212,44 +207,44 @@ class BaseAgent(nn.Module):
             
             # policy loss (sum_{a \in opt_as} pi(a))
             opt_probs = (self.pi*self.optimal_actions)[not_finished, :].sum(-1)
-            assert opt_probs.max() < 1.0 + 1e-5
-            self.acc_loss = self.acc_loss + (1.0 - opt_probs).sum()
+            assert opt_probs.max() < 1.0 + 1e-5 # check that things are not too crazy
+            self.acc_loss = self.acc_loss + (1.0 - opt_probs).sum() # turn our objective into a loss and sum across batches
             
             # entropy loss
             jitter = 1e-5 # add a little bit of jitter to avoid nans
-            pi_ent = (self.pi + jitter) / (1+self.pi.shape[-1] * jitter)
+            pi_ent = (self.pi + jitter) / (1+self.pi.shape[-1] * jitter) # make sure things are normalised
             self.ent_loss = self.ent_loss + self.ent_reg * (pi_ent*pi_ent.log())[not_finished, :].sum() # want to maximize entropy; minimize -H = E[pi logpi]
     
         return
     
     def update_store(self):
         """
-        Update list of environment/agent states with the current state.
+        Update list of environment/agent states to include the current state.
         """
         
-        corrects = self.optimal_actions[self.env.batch_inds, self.action]
-        corrects[self.env.finished] = torch.nan
+        corrects = self.optimal_actions[self.env.batch_inds, self.action] # was the action correct for each trial?
+        corrects[self.env.finished] = torch.nan # nans if trial is finished
 
         self.store.append({
-        "rs": self.r.detach(),
-        "zs": self.z.detach(),
-        "loc": self.env.loc,
-        "action": self.action,
-        "env_action": self.env_action,
-        "optimal_actions": self.optimal_actions,
-        "step_num": self.env.step_num,
-        "finished": self.env.finished.clone(),
-        "pi": self.pi.detach(),
-        "xs": self.env.observation(),
-        "corrects" : corrects
+        "rs": self.r.detach(), # firing rate
+        "zs": self.z.detach(), # neural potential
+        "loc": self.env.loc, # location
+        "action": self.action, # action generated by the agent
+        "env_action": self.env_action, # action passed to the environment
+        "optimal_actions": self.optimal_actions, # optimal action
+        "step_num": self.env.step_num, # how far along are we in the trial (negative during the planning phase)
+        "finished": self.env.finished.clone(), # which trials have finished
+        "pi": self.pi.detach(), # policy
+        "xs": self.env.observation(), # inputs
+        "corrects" : corrects # whether actions are correct
         })
         
     def update_optimal_actions(self):
         """
-        cache optimal actions
+        Cache optimal actions
         """
         with torch.no_grad():
-            self.optimal_actions = self.env.optimal_actions() # tensor ((batch, output_dim)
+            self.optimal_actions = self.env.optimal_actions() # tensor (batch, output_dim)
 
     def forward(self, store = False):
         """
@@ -273,7 +268,7 @@ class BaseAgent(nn.Module):
             
             x = self.env.observation().to(self.z0.device) # observation at this point in time
             self.step(x) # update RNN state, compute policy, and sample an action
-            self.update_loss() # update performance loss 
+            self.update_loss() # update performance and entropy loss 
             
             # now update environment and optionally store env+agent state (don't propagate gradients through this)
             with torch.no_grad():
@@ -290,7 +285,7 @@ class BaseAgent(nn.Module):
 
         Parameters
         ----------
-        n_eval : int
+        num_eval : int
             number of batches to average over
             
         Returns
@@ -305,14 +300,14 @@ class BaseAgent(nn.Module):
             # simulate the trials
             loss = self.forward(store = True).detach().cpu().numpy()
             losses.append(loss) # append loss
-            corrects = torch.stack([s["corrects"] for s in self.store if s["step_num"]>=0]) # accuracy for each trial and step in execution phase
+            corrects = torch.stack([s["corrects"] for s in self.store if s["step_num"]>=0]) # accuracy for each trial and step in the execution phase
             accs.append(torch.nanmean(corrects, axis = 0).mean()) # average
             
         return np.mean(losses), np.mean(accs)
             
     def plot_trial(self, filename = None, run_trial = True, trial_num = 0, values = True, vmap = None, cmap = "coolwarm"):
         """
-        Plot a summary plot for a trials
+        Plot a summary plot for a trial
 
         Parameters
         ----------
@@ -351,6 +346,7 @@ class BaseAgent(nn.Module):
 
 
 #%% Vanilla RNN
+
 class VanillaRNN(BaseAgent):
     classname = "VanillaRNN"
     label = "rnn"
@@ -391,11 +387,12 @@ class VanillaRNN(BaseAgent):
     
     def initialise_weights(self):
         """
-        Instantiate the learnable model parameters
+        Instantiate the learnable model parameters.
+        We just initialise the parameters as iid Gaussian variables.
         """
 
-        self.z0 = nn.Parameter(torch.randn(self.Nrec, 1), requires_grad=True) # RNN initial condition
-        
+        # RNN initial condition
+        self.z0 = nn.Parameter(torch.randn(self.Nrec, 1), requires_grad=True)
         # recurrent weight matrix
         self.Wrec = nn.Parameter(torch.randn(self.Nrec, self.Nrec) / np.sqrt(self.Nrec), requires_grad=True)
         # input weight matrix
@@ -403,7 +400,7 @@ class VanillaRNN(BaseAgent):
         # hidden state bias
         self.brec = nn.Parameter(torch.zeros(self.Nrec, 1), requires_grad=True)
         
-        # now initial the output function, which can be either nonlinear or linear
+        # now initialise the output function, which can be either nonlinear or linear
         if self.nonlin_output:
             # create one hidden layer between the RNN and policy
 
@@ -422,13 +419,27 @@ class VanillaRNN(BaseAgent):
         
         return
 
-        
     def step(self, observation):
+        """
+        Perform all the computations happening before the next environment update step
+        This can include multiple iterations of recurrent network dynamics.
 
+        Parameters
+        ----------
+        observation : tensor
+            The observation at this point in time
+
+        Returns
+        ----------
+        action : tensor
+            action taken for each trial in the batch
+        """
+        
         batch = observation.shape[0] # batch size
         
+        # decide how many network iterations to run for this environment iteration
         network_iters = self.iters_per_action if type(self.iters_per_action) in [int, np.int32, np.int64] else np.random.choice(self.iters_per_action)
-        for _ in range(network_iters): # optionally several RNN steps per action
+        for _ in range(network_iters): # optionally several network iterations
             
             # recurrent noise
             rec_noise = torch.randn(batch, self.Nrec, 1, device = self.z0.device) * self.rec_noise
@@ -448,7 +459,7 @@ class VanillaRNN(BaseAgent):
             # update rate loss for trials that have not finished
             self.rate_loss = self.rate_loss + self.calc_activity_reg(torch.where(~self.env.finished)[0])
             
-            if self.store_all_activity: # store activity at every RNN iteration
+            if self.store_all_activity: # optinoally store activity at every RNN iteration
                 self.all_acts[0].append(self.r.detach().numpy())
                 self.all_acts[1].append( self.env.loc.detach().numpy())
                 self.all_acts[2].append(self.env.step_num)
@@ -462,7 +473,7 @@ class VanillaRNN(BaseAgent):
 
         # normalize log policy
         self.logpi = self.logpi - self.logpi.logsumexp(-1, keepdims = True)
-        self.pi = self.logpi.exp() # compute policy (batch, actions).
+        self.pi = self.logpi.exp() # compute policy (batch, actions)
         
         # sample an action from the policy
         self.action = self.sample_action()
@@ -504,9 +515,9 @@ class VanillaRNN(BaseAgent):
         reg_loss = self.W_reg * torch.stack([torch.square(p).sum() for p in self.parameters()]).sum() # magnitude of total weight vecto
 
         return reg_loss
+    
 
-#%% spacetime attractor
-
+#%% Handcrafted spacetime attractor
 
 class SpaceTimeAttractor(BaseAgent):
     classname = "SpaceTimeAttractor"
@@ -520,11 +531,22 @@ class SpaceTimeAttractor(BaseAgent):
         ----------
         env : MazeEnv
             Environment that the agent is going to interact with
-        beta : float
-            temperature parameter for the reward function. Performance is somewhat sensitive to this
+        beta : Float
+            Temperature parameter for the reward function. Performance is somewhat sensitive to this.
+            If beta is too low, the network can converge to a diffuse representation instead of a clean trajectory to the goal.
+            If beta is too high, the representation can 'teleport' for long trajectories.
+        tau : Float
+            Time constant for the dynamics
+        shift_time : Float
+            Number of time constants for which a feedforward component is included in the dynamics.
+        rec_noise : Float
+            Magnitude of the noise added to the recurrent dynamics.
+        adj_noise : Float
+            Magnitude of the noise added to each element of the recurrent weights
         """
         
-        self.num_modules = env.max_steps+1 # current loc plus max_steps future locs
+        # set some hyperparameters
+        self.num_modules = env.max_steps+1 # Number of subspaces; current loc plus max_steps future locs
         self.num_locs = env.num_locs
         self.batch = env.batch
         self.adj_noise = adj_noise
@@ -542,9 +564,8 @@ class SpaceTimeAttractor(BaseAgent):
     
     def phi(self, x):
         """
-        for now just assume that z is log and r is exp
+        We use an exponential nonlinearity.
         """
-
         return x.exp()
     
     def initialise_weights(self):
@@ -552,35 +573,38 @@ class SpaceTimeAttractor(BaseAgent):
         Instantiate the handcrafted model parameters
         """
 
-        A = self.env.adjacency.clone()
-        adj_noise = self.adj_noise
+        A = self.env.adjacency.clone() # adjacency matrix of the environment
+        adj_noise = self.adj_noise # how much noise will we add
+        bias = -5e-3 # bias added to the noise
         
-        self.Wrec_fwd, self.Wrec_bwd, self.Wrec_self = [torch.zeros(self.batch, self.Nrec, self.Nrec) for _ in range(3)]
-        self.Win = torch.zeros(self.Nrec, self.Nin)
+        # instantiate recurrent weight matrices
+        self.Wrec_fwd, self.Wrec_bwd = [torch.zeros(self.batch, self.Nrec, self.Nrec) for _ in range(2)]
+        self.Win = torch.zeros(self.Nrec, self.Nin) # input weights
         self.Wout = torch.zeros(self.env.num_locs, self.Nrec) # inherently allocentric; can convert to egocentric subsequently
-        self.Wrec_shift = torch.zeros(self.Nrec, self.Nrec)
-        bias = -5e-3
+        self.Wrec_shift = torch.zeros(self.Nrec, self.Nrec) # weights for the 'shift' dynamics
         
-        # recurrent weights
-        for mod1 in range(self.num_modules-1):
+        # set recurrent weights
+        for mod1 in range(self.num_modules-1): # for each subspace
+            # indices of the weight matrices corresponding to this subspace and the next
             mod1_inds, mod2_inds = [torch.arange(self.num_locs)+self.num_locs*ind for ind in [mod1, mod1+1]]
-            self.Wrec_self[:, mod1_inds, mod1_inds] = 1 # self connections
-            self.Wrec_shift[mod1_inds, mod2_inds] = torch.ones(self.num_locs) # shift connections to next module
-            #print(mod1_inds, mod2_inds)
+            self.Wrec_shift[mod1_inds, mod2_inds] = torch.ones(self.num_locs) # shift connections from delta+1 to delta
             for i1, ind1 in enumerate(mod1_inds):
                 for i2, ind2 in enumerate(mod2_inds):
+                    # weights are just the adjacency matrix plus some noise
                     self.Wrec_fwd[:, ind2, ind1] = A[:, i2, i1].clone() + (torch.rand(self.batch) - 2.0)*adj_noise + bias
                     self.Wrec_bwd[:, ind1, ind2] = A[:, i1, i2].clone() + (torch.rand(self.batch) - 2.0)*adj_noise + bias
         
+        # total recurrent weights combine forward and backward connections between subspaces
         self.Wrec = self.Wrec_fwd + self.Wrec_bwd
         
         # input weights
         self.Win[:self.num_locs, :self.num_locs] = torch.eye(self.num_locs) # current loc
-        self.Win[self.num_locs:, 2*self.num_locs:-2*self.num_locs] = torch.eye(self.Win.shape[0] - self.num_locs) # reward
+        self.Win[self.num_locs:, 2*self.num_locs:-2*self.num_locs] = torch.eye(self.Win.shape[0] - self.num_locs) # future reward (zero for _current_ reward)
         
+        # output is just the delta=1 subspace
         self.Wout[:, self.num_locs:2*self.num_locs] = torch.eye(self.num_locs)
         
-        # uniform in space at each time
+        # initial condition is uniform in space at each time
         self.z0 = torch.log(torch.ones(self.num_modules, self.num_locs) / self.num_locs)
         
         #bias is zero for this agent 
@@ -591,17 +615,18 @@ class SpaceTimeAttractor(BaseAgent):
     def calc_policy(self):
         """compute policy from firing rate"""
         self.pi = (self.Wout @ self.r.reshape(self.batch, -1, 1))[..., 0] # policy ends up being activity in second module
-        if self.env.output_format == "egocentric": # convert to an egocentric policy
+        if self.env.output_format == "egocentric": # optionally convert to an egocentric policy
             self.pi = self.allo_to_ego_pi(self.pi)
 
     def obs_to_rew_func(self, observation, flat = False):
-        obs_mod = observation.reshape(self.batch, -1, self.num_locs) # module by module
-        rew_inds = torch.cat([torch.arange(1), torch.arange(2, obs_mod.shape[1]-2)])
-        logrews = obs_mod[:, rew_inds, :] #.clone() # reward function (batch, modules, locs)
-        logrews[:, 0, :] *= 20.0 # very strong signal to start at current loc
+        """This function extract the location and reward information from the inputs and puts it into the right format"""
+        obs_mod = observation.reshape(self.batch, -1, self.num_locs) # batch by input type by location within module
+        rew_inds = torch.cat([torch.arange(1), torch.arange(2, obs_mod.shape[1]-2)]) # indicies of the inputs corresponding to current location and future reward
+        logrews = obs_mod[:, rew_inds, :] # reward function (batch, modules, locs)
+        logrews[:, 0, :] *= 20.0 # strong signal to start at current location
         logrews *= self.beta # multiply by temperature parameter
         logrews -= logrews.logsumexp(axis = -1, keepdims = True) # turn into a distribution over locations and add final vector dimension 
-        if flat:
+        if flat: # flatten back into a vector instead of a matrix
             obs_mod[:, rew_inds, :] = logrews # replace reward function in observation
             return obs_mod.reshape(self.batch, -1, 1)
         else:
@@ -609,43 +634,45 @@ class SpaceTimeAttractor(BaseAgent):
 
     def step(self, observation):
 
-        clip_minval = torch.tensor(-100) # minimum value of logps
+        clip_minval = torch.tensor(-100) # threshold value for inhbition
 
-        # now extract reward function from observation
+        # first extract reward function from observation
         logrews = self.obs_to_rew_func(observation.clone(), flat = True) # flatten for each trial (batch, modules*locs)
 
+        # select how many network iterations to run
         network_iters = self.iters_per_action if type(self.iters_per_action) in [int, np.int32, np.int64] else np.random.choice(self.iters_per_action)
         
-        for iter_ in range(network_iters):
+        for iter_ in range(network_iters): # for each iteration
 
-            rs = self.r.reshape(self.batch, -1, 1) # firing rate but add vector dim
+            rs = self.r.reshape(self.batch, -1, 1) # firing rate but add vector dimension
+            # compute change in activity
             dzdt = (self.Win @ logrews + torch.maximum(clip_minval.exp(), self.Wrec_fwd @ rs).log() + torch.maximum(clip_minval.exp(), self.Wrec_bwd @ rs).log())
 
+            # optionally add a 'shift component' to the dynamics for a period after each action
             if (iter_ < self.tau*self.shift_time) and (self.env.step_num > 0):
-                #print(rs.shape, self.Wrec_shift.shape, dzdt.shape)
                 dzdt += torch.maximum(clip_minval.exp(), self.Wrec_shift @ rs).log()
-                
+            
+            # reshape update and bias
             dzdt = dzdt.reshape(self.batch, -1, self.num_locs)
             bias = self.brec.reshape(1, -1, self.num_locs)
 
-            # recurrent noise
+            # sample recurrent noise
             rec_noise = torch.randn(dzdt.shape, device = self.z0.device) * self.rec_noise
 
             # update activity
-            self.z = (1-1/self.tau) * self.z + 1/self.tau * (dzdt + rec_noise + bias) # update activity
+            self.z = (1-1/self.tau) * self.z + 1/self.tau * (dzdt + rec_noise + bias)
             
             # normalize and threshold
-            self.z = self.z - self.z.logsumexp(axis = -1, keepdims = True)
-            self.z = torch.clip(self.z, min = clip_minval, max = 0.0)
-            self.r = self.phi(self.z) # apply exp nonlinearity
-            
-            #print(self.r.sum(-1).mean(), self.r.sum(-1).std())
-            
-            if self.store_all_activity: # store activity at every RNN iteration
+            self.z = self.z - self.z.logsumexp(axis = -1, keepdims = True) # normalise
+            self.z = torch.clip(self.z, min = clip_minval, max = 0.0) # threshold
+            self.r = self.phi(self.z) # apply exponential nonlinearity to compute firing rates
+
+            if self.store_all_activity: # optionally store activity at every RNN iteration
                 self.all_acts[0].append(self.r.detach().numpy())
                 self.all_acts[1].append( self.env.loc.detach().numpy())
                 self.all_acts[2].append(self.env.step_num)
 
+        #compute the policy
         self.calc_policy()
         # sample an action from the policy
         self.action = self.sample_action()
@@ -653,7 +680,7 @@ class SpaceTimeAttractor(BaseAgent):
         return self.action
             
     def reset(self):
-        """also need to precompute successor matrix"""
+        """Reset the agent. This involves the BaseAgent reset and then re-initialising weights in case the environment changed"""
         super(SpaceTimeAttractor, self).reset()
         self.initialise_weights() # reinitialize weights
         
@@ -661,7 +688,7 @@ class SpaceTimeAttractor(BaseAgent):
 
     def plot_representation(self, filename = None, trial_num = 0, **kwargs):
         """
-        Plot a summary plot for a trials
+        Generate a summaruy plot for a trial
 
         Parameters
         ----------
@@ -674,7 +701,7 @@ class SpaceTimeAttractor(BaseAgent):
         # find out which time points have not finished
         fig, axs = plt.subplots(1, self.num_modules, figsize = (2*self.num_modules, 2))
         for t, ax in enumerate(axs): # for each time point, plot a panel
-            loc = self.env.loc[trial_num] if t == 0 else torch.argmax(self.r[trial_num, t]) # predicted location
+            loc = self.env.loc[trial_num] if t == 0 else torch.argmax(self.r[trial_num, t]) # predicted location at this time
             self.env.plot(loc = loc, vmap = self.r[trial_num, t, :], step_num = t, ax = ax, trial_num = trial_num,
                           cmap  = "YlOrRd", plot_optimal_actions = t<len(axs)-1, vmin = -0.1, vmax = 1.2, **kwargs)
         plt.tight_layout = True
@@ -698,10 +725,13 @@ class SRLearner(BaseAgent):
         ----------
         env : MazeEnv
             Environment that the agent is going to interact with
-        gamma : the discount factor used to compute the successor matrix
+        gamma : Float
+            The discount factor used to compute the successor matrix
+        beta : Float
+            The temperature parameter used to compute the policy
         """
         
-        # instantiate super class
+        # instantiate class and save some parameters
         self.gamma = gamma
         self.beta = beta # temperature parameter
         super(SRLearner, self).__init__(env, **kwargs)
@@ -710,21 +740,21 @@ class SRLearner(BaseAgent):
         return
     
     def phi(self, x):
-        return x
+        return x # no nonlinearity
     
     def reset(self):
-        """also need to precompute successor matrix"""
+        """Reset Baseagent then recompute successor matrix"""
         super(SRLearner, self).reset()
         adj = self.env.adjacency # (batch, to, from)
         T = adj / adj.sum(1, keepdims = True) # transition matrix
-        self.M = torch.linalg.inv(torch.eye(T.shape[-1])[None, ...] - self.gamma*T)
-        self.r = None
+        self.M = torch.linalg.inv(torch.eye(T.shape[-1])[None, ...] - self.gamma*T) # analytically compute successor matrix
+        self.r = None # no neural activity
         
         return
     
     def initialise_weights(self):
         """
-        Model parameters are empty; we will compute analytically
+        Model parameters are empty; we will compute everything analytically
         """
         self.z0 = torch.zeros(self.env.num_locs) # z is value, which we initialize to zero
         return
@@ -734,7 +764,7 @@ class SRLearner(BaseAgent):
         Perform one 'update step'
         For simplicity, we just multiply the average occupancy with the average reward function.
         If the reward format is 'relative', this ends up being the 'reward-to-go'.
-        in the future, we could think about also using the 'occupancy-to-go' instead of just exponentially decayed occupancy.
+        In the future, we could think about also using the 'occupancy-to-go' instead of just exponentially decayed occupancy.
 
         Parameters
         ----------
@@ -748,26 +778,30 @@ class SRLearner(BaseAgent):
         """
 
         rew_func = observation.reshape(self.env.batch, -1, self.env.num_locs)[:, 1:-2, :].clone() # reward function (batch, steps, locs)
-        # take an average across time
 
-        mean_rew = rew_func[:, 1:, :].mean(1, keepdims = True) # ignore rew at current time
+        # compute average reward
+        mean_rew = rew_func[:, 1:, :].mean(1, keepdims = True) # ignore reward at current time
+        
         # compute value function
         self.values = (mean_rew @ self.M)[:, 0, :] # (batch, locs)
-        self.z = self.values
-        exp_occ = self.M[self.env.batch_inds, :, self.env.loc]
+        self.z = self.values # neural potential is just the value function
+        exp_occ = self.M[self.env.batch_inds, :, self.env.loc] # expected occupancy
+        # 'neural activity' is values and occupancy. This is not used for any computation, but may be interesting for decoding analyses.
         self.r = torch.cat([self.values, exp_occ], 1)[..., None]
         
+        # compute policy
         self.pi = (self.beta * self.values).exp() # allocentric policy
         self.pi /= self.pi.sum(-1, keepdims = True) # normalize
         
         if self.env.output_format == "egocentric":
-            self.pi = self.allo_to_ego_pi(self.pi) # convert to egocentric
+            self.pi = self.allo_to_ego_pi(self.pi) # optionally convert to egocentric policy
 
         self.action = self.sample_action() # sample an action from the policy
         
         return self.action
     
     def plot_trial_values(self, filename = None, run_trial = True, trial_num = 0, cmap = "coolwarm"):
+        """Function for plotting the value function for a trial"""
         
         if run_trial: # optionally simulate a new trial
             self.forward(store = True)
@@ -783,14 +817,16 @@ class TDLearner(BaseAgent):
 
     def __init__(self, env, beta = 5.0, tau = 20, **kwargs):
         """
-        Successor representation agent that navigates in a maze
+        Temporal difference learner that navigates in a maze
 
         Parameters
         ----------
         env : MazeEnv
             Environment that the agent is going to interact with
-        gamma : the discount factor used to compute the successor matrix
-        tau : the inverse of the learning rate
+        beta : Float
+            The temperature parameter used to compute a policy
+        tau : Float
+            The inverse of the learning rate
         """
         
         # instantiate super class
@@ -801,10 +837,10 @@ class TDLearner(BaseAgent):
         return
     
     def phi(self, x):
-        return x
+        return x # no nonlinearity
     
     def reset(self):
-        """also need to store initial location"""
+        """Reset BaseAgent and store initial location"""
         super(TDLearner, self).reset()
         self.prev_loc = self.env.loc
         self.prev_not_finished = torch.ones(self.env.num_locs)
@@ -812,24 +848,26 @@ class TDLearner(BaseAgent):
     
     def initialise_weights(self):
         """
-        Model parameters are empty; we will compute analytically
+        Model parameters are the values
         """
         self.values = torch.zeros(self.env.num_locs)+1.0 # optimistic value initialisation
         self.z0 = self.values.clone() # our firing rates will also be the values
         return
     
     def run_td_update(self):
+        """Run a TD update on the value function"""
+        
         new_rew = self.env.latest_rew # the reward we just got
-        #print(self.env.step_num, new_rew)
-        prev_V = self.values[self.prev_loc]
-        new_V = self.values[self.env.loc] * (~self.env.finished).to(float) # no more value for finished episodes
+        prev_V = self.values[self.prev_loc] # value of previous location
+        new_V = self.values[self.env.loc] * (~self.env.finished).to(float) # value of new location (no more value for finished trials)
         
         self.td_error = (new_rew + new_V - prev_V) * self.prev_not_finished  # TD error (set to zero for finished episodes)
         
-        #raise NotImplementedError # check that this works correctly with batched data
+        # previous locations
         prev_locs_1hot = F.one_hot(self.prev_loc, num_classes = self.env.num_locs) # (batch, num_locs)
+        # batched TD update
         updates = (prev_locs_1hot * self.td_error[:, None]).sum(0) / self.prev_not_finished.sum() # avg over all td errors for each location in the batch
-        self.values += (1/self.tau)*updates
+        self.values += (1/self.tau)*updates # update values
 
     def step(self, observation):
         """
@@ -848,31 +886,45 @@ class TDLearner(BaseAgent):
         """
 
         # first select an action
-        self.pi = (self.beta * self.values).exp()[None, ...] + torch.zeros(observation.shape[0], self.env.num_locs) # allocentric policy is just value
+        self.pi = (self.beta * self.values).exp()[None, ...] + torch.zeros(observation.shape[0], self.env.num_locs) # # allocentric policy is proportional to exponential value
         self.pi /= self.pi.sum(-1, keepdims = True) # normalize
         if self.env.output_format == "egocentric":
-            self.pi = self.allo_to_ego_pi(self.pi) # convert to egocentric
+            self.pi = self.allo_to_ego_pi(self.pi) # optionally convert to egocentric
 
         self.action = self.sample_action() # sample an action from the policy
         
         # now update our values based on previous experience
-        if self.env.step_num >= 1:
+        if self.env.step_num >= 1: # can only run a TD update once we start collecting experience
             self.run_td_update()
             
-        self.z = self.values[None, :] + torch.zeros(self.env.batch, self.env.num_locs) # broadcast to batch size
-        self.r = self.phi(self.z)
-        self.prev_loc = self.env.loc
-        self.prev_not_finished = (~self.env.finished).to(float)
+        self.z = self.values[None, :] + torch.zeros(self.env.batch, self.env.num_locs) # potential is just value
+        self.r = self.phi(self.z) # firing rate is just value (this is not used for computation, just for visualisation)
+        self.prev_loc = self.env.loc # save previous location
+        self.prev_not_finished = (~self.env.finished).to(float) # which trials are done?
         
         return self.action
     
     def forward(self, store = False):
+        """
+        Run a single batch of trials
+
+        Parameters
+        ----------
+        store : bool
+            if true, store environment and agent states after every action
+            
+        Returns
+        ----------
+        avg_loss : tensor
+            average loss across trials in a batch
+        """
+        
         loss = super(TDLearner, self).forward(store = store) # run default forward pass
         self.run_td_update() # important to update values based on final sample as well
         return loss
     
     def plot_trial_values(self, filename = None, run_trial = True, trial_num = 0, cmap = "YlOrRd"):
-        
+        """Function for plotting value function after a batch of trials"""
         if run_trial: # optionally simulate a new trial
             self.forward(store = True)
         vmap = [s["zs"][trial_num].flatten() for s in self.store]
@@ -881,7 +933,7 @@ class TDLearner(BaseAgent):
 
 
 
-#%% Dynamic programming agent
+#%% Dynamic programming agent (value agent in space and time)
 
 class DPAgent(BaseAgent):
     classname = "DPAgent"
@@ -889,16 +941,19 @@ class DPAgent(BaseAgent):
     
     def __init__(self, env, beta = 5.0, **kwargs):
         """
-        Dynamic programming agent that just computes an optimal value function once and for all
+        Dynamic programming agent that just computes an optimal spacetime value function once and for all
 
         Parameters
         ----------
         env : MazeEnv
             Environment that the agent is going to interact with
+        beta : Float
+            Temperature parameter for computing a policy
         """
         
+        # store parameters
         self.beta = beta
-        self.Nrec = env.num_locs + env.max_steps + np.prod(env.vs[0].shape)
+        self.Nrec = env.num_locs + env.max_steps + np.prod(env.vs[0].shape) # location, time-in-trial, and spacetime value function
         
         # initialise BaseAgent
         super(DPAgent, self).__init__(env, **kwargs)
@@ -906,22 +961,24 @@ class DPAgent(BaseAgent):
         return
     
     def phi(self, x):
-        return x
+        return x # no nonlinearity
     
     def initialise_weights(self):
-        self.z0 = torch.zeros(self.Nrec, 1)
+        self.z0 = torch.zeros(self.Nrec, 1) # no parameters
     
     def update_z_and_r(self):
-        self.t = torch.tensor(max(0, self.env.step_num))
-        self.flat_t = F.one_hot(self.t, num_classes = self.env.max_steps)+torch.zeros(self.env.batch, self.env.max_steps)
-        self.loc = F.one_hot(self.env.loc, num_classes = self.env.num_locs)
+        """This just involves concatenating the relevant environment variables into a vector that will be used for decoding analyses"""
+        self.t = torch.tensor(max(0, self.env.step_num)) # current time (everything during planning is called '0')
+        self.flat_t = F.one_hot(self.t, num_classes = self.env.max_steps)+torch.zeros(self.env.batch, self.env.max_steps) # one-hot version
+        self.loc = F.one_hot(self.env.loc, num_classes = self.env.num_locs) # current location as a one-hot
         
-        self.values = self.env.vs
+        self.values = self.env.vs # value function
+        # set potential and firing rate to the concatenation of time, location, and values
         self.z = torch.cat([self.values.reshape(self.env.batch, -1), self.loc, self.flat_t], dim = -1)[..., None]
         self.r = self.z.clone()
         
     def reset(self):
-        """also need to precompute successor matrix"""
+        """Run BaseAgent reset step, and then re-cache the value function and recompute representation since the environment may have changed"""
         super(DPAgent, self).reset()
         self.values = self.env.vs
         self.update_z_and_r()
@@ -931,7 +988,7 @@ class DPAgent(BaseAgent):
     def step(self, observation):
         """
         Perform one 'update step'
-        This involves both choosing an action and updating our value function
+        This involves updating the neural representation and sampling an action
 
         Parameters
         ----------
@@ -948,13 +1005,13 @@ class DPAgent(BaseAgent):
         self.update_z_and_r()
         
         # then compute policy
-        next_values = self.values[:, self.t+1, :]
+        next_values = self.values[:, self.t+1, :] # values at every upcoming point in spacetime
         
-        self.pi = (self.beta * next_values).exp() # allocentric policy is just value
+        self.pi = (self.beta * next_values).exp() # allocentric policy is proportional to exponential value
         self.pi /= self.pi.sum(-1, keepdims = True) # normalize
         
         if self.env.output_format == "egocentric":
-            self.pi = self.allo_to_ego_pi(self.pi) # convert to egocentric
+            self.pi = self.allo_to_ego_pi(self.pi) # optionally convert to egocentric
 
         # and sample an action
         self.action = self.sample_action() # sample an action from the policy

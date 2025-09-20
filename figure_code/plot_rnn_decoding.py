@@ -57,18 +57,21 @@ for imodel, model in enumerate(models):
     
     # plot result
     plot_inds = np.arange(len(mean_neural))[2:-1]
+    labels = [f"t={int(i)}" for i in mean_neural[plot_inds]] if model == "DP" else None
     sequence_colors = [plt.get_cmap("viridis")(iind / (len(plot_inds)-0.7)) for iind in range(len(plot_inds))][::-1]
     pysta.plot_utils.plot_prediction_result(mean_nongen_scores[plot_inds, :], mean_neural[plot_inds], mean_loc, cols = sequence_colors, figsize = figsize, ymax = 1.07,
-                                            error = std_nongen_scores[plot_inds, :], show = False, ts_train = None, xticks = range(6), yticks = [0, 1], labelpad = -5)
+                                            error = std_nongen_scores[plot_inds, :], show = False, ts_train = None, xticks = range(6), yticks = [0, 1], labelpad = -5, labels = labels)
     
-
     if model in ["DP", "egocentric", "relrew"]:
-        xticks, xlabel = mean_loc.astype(int), "location at this time"
+        xticks, xlabel = mean_loc.astype(int), "time in future"
     else:
-        xticks, xlabel = [], ""
+        xticks, xlabel = [], None
         
+    if model == "DP":
+        plt.legend(loc = "upper center", bbox_to_anchor = (0.5, 1.0), ncol = 3, frameon = False, columnspacing = 0.9, handlelength = 1.1, handletextpad = 0.5)
     plt.xticks(xticks)
-    plt.xlabel(xlabel)
+    plt.xlabel(xlabel, labelpad = 3.5)
+    plt.ylabel("% correctly\npredicted location", labelpad = 1)
     plt.savefig(f"{pysta.basedir}/figures/rnn_decoding/{model}_decoding_by_time{ext}", bbox_inches = "tight", transparent = True)
     plt.show()
     plt.close()
@@ -168,7 +171,7 @@ for imodel, model in enumerate(models):
     plt.close()
 
 
-    #%% now plot some example generalizations
+    #%% now an example generalisation
 
     neural_time, loc_time = (1,3)
     train_neural_ind = np.argmin((neural_times - neural_time)**2)
@@ -182,9 +185,14 @@ for imodel, model in enumerate(models):
     ts_train = (neural_time, loc_time)
     #ts_train = None
     pysta.plot_utils.plot_prediction_result(mean_scores[plot_inds, :], mean_neural[plot_inds], mean_loc, xticks = xticks, xlabel = xlabel, cols = sequence_colors, figsize = figsize, yticks = [0, 1],
-                                            ymax = 1.07, error = std_scores[plot_inds, :], ts_train = ts_train, show = True, labelpad = -5,
-                                            filename = f"{basedir}/figures/rnn_decoding/{model}_decoding_gen_{neural_time}_{loc_time}{ext}")
-
+                                            ymax = 1.07, error = std_scores[plot_inds, :], ts_train = ts_train, show = False, labelpad = -5, filename = None)
+        
+    plt.xticks(xticks)
+    plt.xlabel(xlabel, labelpad = 3.5)
+    plt.ylabel("% correctly\npredicted location", labelpad = 1)
+    plt.savefig(f"{basedir}/figures/rnn_decoding/{model}_decoding_gen_{neural_time}_{loc_time}{ext}", bbox_inches = "tight", transparent = True)
+    plt.show()
+    plt.close()
 
     #%% quantify 'goodness' of the 'relative' and 'absolute' coding models
 

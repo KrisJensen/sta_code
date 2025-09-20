@@ -99,11 +99,11 @@ for imodel, model in enumerate(models):
             
         pysta.plot_utils.plot_slot_connectivity(Win_eff_plot, num_locs, filename = f"{basefigdir}{model}/input_weights{substr}{ext}", show = True,
                                                 xticks = xticks, figsize = figsize,
-                                                yticks = range(1, num_slots+1), ylabel = "subspace number", transparent = True)
+                                                yticks = range(0, num_slots), ylabel = "subspace number", transparent = True)
 
         #%% plot all output weights
         Wout_eff = Wout @ Csub_flat.T # (output, slots)
-        yticks = [f"subspace {i}" for i in range(1, num_slots+1)]
+        yticks = [f"subspace {i}" for i in range(0, num_slots)]
         pysta.plot_utils.plot_slot_connectivity(Wout_eff[:, keep_slot_inds].T, num_locs, xtickrot=0, xticks = [], xlabel = "output", yticks = yticks,
                                                 filename = f"{basefigdir}{model}/output_weights{substr}{ext}", show = True, figsize = figsize, ylabel = None, transparent = True)
     
@@ -113,7 +113,7 @@ for imodel, model in enumerate(models):
         Wrec_eff = Csub_flat @ Wrec @ Csub_flat.T # (slots, slots)
         Wrec_eff_plot = Wrec_eff[keep_slot_inds, :][:, keep_slot_inds] # (slots, slots)
         pysta.plot_utils.plot_slot_connectivity(Wrec_eff_plot, num_locs, filename = f"{basefigdir}{model}/recurrent_weights{substr}{ext}", show = True, figsize = figsize, vmin = 0.2, vmax = 0.97, transparent = True,
-                                                yticks = [str(i) for i in range(1, num_slots+1)], xticks = [str(i) for i in range(1, num_slots+1)], xlabel = "input subspace", ylabel = "output subspace", xtickrot = 0)
+                                                yticks = [str(i) for i in range(0, num_slots)], xticks = [str(i) for i in range(0, num_slots)], xlabel = "input subspace", ylabel = "output subspace", xtickrot = 0)
 
 
         #%% also plot 1 input row at a time
@@ -273,7 +273,7 @@ for imodel, model in enumerate(models):
             for adj in adjs:
                 edgecolors[16*i + adj] = sequence_colors[1]
         
-        pysta.plot_utils.plot_perspective_attractor(walls, weights, vmin = -0.5, vmax = 2.3, cmap = "coolwarm", filename = f"{basefigdir}{model}/avg_proj{substr}{ext}",
+        pysta.plot_utils.plot_perspective_attractor(walls, weights, vmin = -0.6, vmax = 1.9, cmap = "coolwarm", filename = f"{basefigdir}{model}/avg_proj{substr}{ext}",
                                                     lw = 4, plot_proj = False, figsize = (7,4), aspect = (1,1,3.6), view_init = (-38,-10,-90), show = True, edgecolors = edgecolors,
                                                     bbox_inches = mpl.transforms.Bbox([[2.0,1.35], [5.1,2.65]]), transparent = True)
                     
@@ -347,9 +347,11 @@ xs, ms, ss = np.arange(data.shape[1]), np.mean(data, axis = 0), np.std(data, axi
 jitters = np.random.normal(0, 0.1, len(data)) # jitter for plotting
 
 plt.figure(figsize = (1.5,1.8))
-plt.bar(xs, ms, yerr = ss)
+
+plt.bar(xs, ms, yerr = ss, capsize = 3, error_kw={'elinewidth': 2, "markeredgewidth": 2})
 for idata, datapoints in enumerate(data.T):
-    plt.scatter(jitters+xs[idata], datapoints, marker = ".", color = "k", alpha = 0.5)
+    plt.scatter(jitters+xs[idata], datapoints, marker = ".", color = "k", alpha = 0.5, linewidth = 0.0, s = 80)
+    
 plt.ylabel("overlap")
 plt.ylim(0, 1)
 plt.xticks(xs, ["WM", "continual"])#, rotation = 45, ha = "right")

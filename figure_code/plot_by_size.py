@@ -25,7 +25,7 @@ mpl.rcParams['font.size'] = 8
 
 data = pickle.load(open(f"{basedir}/data/comparisons/performance_and_decoding_by_size.pickle", "rb"))
 sizes, perfs, decoding = data["sizes"], np.array(data["perfs"]), np.array(data["decoding"])
-cols = [plt.get_cmap("viridis")(s/np.amax(sizes)) for s in sizes]
+cols = [plt.get_cmap("viridis")(s/np.amax(sizes)*0.92) for s in sizes]
 #%%
 
 sizeticks = np.arange(0, 801, 200)

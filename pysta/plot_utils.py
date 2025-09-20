@@ -422,7 +422,7 @@ def plot_perspective_gif(walls, vmaps, tempdir = "./temp/", locs = None, filenam
 
 
 
-def plot_prediction_result(prediction_result, neural_times, loc_times, error = None, figsize = (3.0,2.5), labelpad = None, filename = None, show = False, ymax = None, baseline = None, ts_train = None, legend = False, xlabel = None, cols = None, xticks = None, yticks = None):
+def plot_prediction_result(prediction_result, neural_times, loc_times, error = None, figsize = (3.0,2.5), labelpad = None, labels = None, filename = None, show = False, ymax = None, baseline = None, ts_train = None, legend = False, xlabel = None, cols = None, xticks = None, yticks = None):
     """
     function for plotting the result of predicting future/past locations from neural activity
     
@@ -451,7 +451,8 @@ def plot_prediction_result(prediction_result, neural_times, loc_times, error = N
         
     for i in range(0,len(prediction_result)-0):
         mean_pred = prediction_result[i]
-        plt.plot(xs, mean_pred, label = f"neurons from t = {neural_times[i]}", lw = 2, color = cols[i])
+        label = f"neurons from t = {neural_times[i]}" if labels is None else labels[i]
+        plt.plot(xs, mean_pred, label = label, lw = 2, color = cols[i])
         if error is not None:
             std_pred = error[i]
             plt.fill_between(xs, mean_pred-std_pred, mean_pred+std_pred, alpha = 0.2, color = cols[i])

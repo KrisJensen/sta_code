@@ -41,7 +41,7 @@ for iloss, loss_label in enumerate(loss_labels):
     perfs = gen_data["perfs"][..., iloss].mean(1)
     
     if iloss != 0:
-        perfs = perfs / perfs.mean(0)[:, :3].max(-1)[None, :, None] # normalize to 1 for rate and param losses
+        perfs = perfs / (perfs.mean(0)[:, :3].max(-1)[None, :, None] +1e-20) # normalize to 1 for rate and param losses
 
     for ienv, ind in enumerate(order):
         env = short_labels[ind]
