@@ -160,7 +160,7 @@ for imodel, model in enumerate(models):
     all_planning_decoding[model+"_accs"], all_planning_decoding[model+"_xvals"], all_planning_decoding[model+"_neural"] = nongen_scores, mean_loc, mean_neural
     
     if model in ["DP", "egocentric", "relrew"]:
-        xticks, xlabel = range(1,6), "location at this time"
+        xticks, xlabel = range(1,6), "time in future"
     else:
         xticks, xlabel = [], ""
         

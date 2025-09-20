@@ -96,6 +96,7 @@ for imodel, model in enumerate(models):
         keep_slot_inds = np.arange(num_slots*16) # keep only the first 5 slots
         Win_eff_plot = Win_eff[:, keep_input_inds][keep_slot_inds, :]
         xticks = ["location"]+["R("+r"$\delta = $"+f"{i})" for i in range(1, num_slots)] #, "R("+r"$\delta = 2$"+")"]
+        xticks = ["location"]+[r"$\delta$"+f"={i} reward" for i in range(1, num_slots)] #, "R("+r"$\delta = 2$"+")"]
             
         pysta.plot_utils.plot_slot_connectivity(Win_eff_plot, num_locs, filename = f"{basefigdir}{model}/input_weights{substr}{ext}", show = True,
                                                 xticks = xticks, figsize = figsize,
