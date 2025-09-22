@@ -221,6 +221,4 @@ plt.show()
 plt.close()
 
 
-
-
 # %%
