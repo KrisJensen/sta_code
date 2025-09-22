@@ -90,7 +90,7 @@ for iax, ax in enumerate(axs):
         ax.bar(xs[ix], [act], color = plt.get_cmap(cmap_activity)(act))
     ax.set_yticks([])
     ax.set_xticks([])
-    ax.set_ylabel("activity", labelpad = 2.5)
+    ax.set_ylabel("firing rate", labelpad = 2.5)
     ax.set_ylim(0, 1.3)
 axs[1].set_xlabel(r"preferred $\theta$", labelpad = 3.5)
 plt.tight_layout = True

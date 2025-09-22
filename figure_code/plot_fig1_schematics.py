@@ -75,13 +75,23 @@ plt.savefig(f"{basedir}/figures/schematics/sta_cells{ext}", bbox_inches = mpl.tr
 plt.show()
 plt.close()
 
+#%% plot colorbar
+
+plt.figure(figsize = (0.4,3))
+plt.imshow(np.linspace(1,0, 101)[:, None], vmin = 0, vmax = 1.1, aspect = "auto", cmap = "YlOrRd")
+plt.xticks([])
+plt.yticks([])
+plt.savefig(f"{basedir}/figures/schematics/fr_cbar{ext}", bbox_inches = "tight", transparent = True)
+plt.show()
+plt.close()
+
 
 #%% now plot spikes over time
 
 ys = np.arange(4)
 xs = np.zeros(len(ys))+0.5
 
-plt.figure(figsize = (0.55,1.1))
+plt.figure(figsize = (0.4,0.9))
 for i in range(len(ys)):
     plt.plot([xs[i], xs[i]], [-ys[i]-0.33, -ys[i]+0.33], color = sequence_colors[i], lw = 3)
 
@@ -114,7 +124,7 @@ for ictrl in range(3):
     plt.xticks([])
     plt.yticks([])
     plt.xlabel("receptive field alignment", labelpad = 3.5)
-    plt.ylabel("activity", labelpad = 2.5)
+    plt.ylabel("V1 activity", labelpad = 2.5)
     plt.gca().spines[["top", "right"]].set_visible(False)
     plt.gca().spines[['left', 'bottom']].set_linewidth(1.3)
     plt.savefig(f"{basedir}/figures/schematics/V1_response{ictrl}{ext}", bbox_inches = "tight", transparent = True)
@@ -199,7 +209,7 @@ for ix, act in enumerate(ring_acts):
 
 plt.xticks([])
 plt.yticks([])
-plt.ylabel("activity", labelpad = 2.5)
+plt.ylabel("firing rate", labelpad = 2.5)
 plt.xlabel("preferred angle", labelpad = 3.5)
 plt.ylim(0, 1.1)
 plt.gca().spines[['right', 'top']].set_visible(False)

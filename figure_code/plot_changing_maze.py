@@ -48,11 +48,11 @@ for ienv, env in enumerate([0, 3]):
 
     if ienv == 1:
         plt.xticks(xs, ["trained in\nfixed", "trained in\nchanging"])#, rotation = 45, ha = "right")
-        plt.ylabel("accuracy in\nchanging maze", labelpad = 0)
+        plt.ylabel("performance in\nchanging maze", labelpad = 0)
         plt.gca().tick_params(axis='x', which='major', pad=2)
     else:
         plt.xticks([])
-        plt.ylabel("accuracy in\nfixed maze", labelpad = 0)
+        plt.ylabel("performance in\nfixed maze", labelpad = 0)
         
     plt.axhline(0.2, color = np.ones(3)*0.6)
     plt.yticks([0, 1])
@@ -281,7 +281,7 @@ xmax = int(max(epochs[:, -1].max(), epochs_ref[:, -1].max()))
 plt.xlim(-5000, xmax)
 plt.xticks(range(0, xmax+1, 100000))
 plt.xlabel("epoch", labelpad = 3.5)
-plt.ylabel("accuracy", labelpad = 2.5)
+plt.ylabel("performance", labelpad = 2.5)
 plt.savefig(f"{basefigdir}training_curves{ext}", bbox_inches = "tight", transparent = True)
 plt.show()
 plt.close()
@@ -327,6 +327,7 @@ for idata, data_type in enumerate(["", "transition_"]):
 
     all_data_true = [pickle.load(open(f"{datadir}decoder_{data_type}generalization_performance.pickle", "rb")) for datadir in datadirs]
     all_data_ref = [pickle.load(open(f"{datadir}decoder_{data_type}generalization_performance.pickle", "rb")) for datadir in datadirs_ref]
+    ylabel = "% correctly\npredicted location" if idata == 0 else "% correctly\npredicted transition"
 
     plan_perfs, plan_xs = [], []
     ex_perfs, ex_xs = [], []
@@ -336,7 +337,6 @@ for idata, data_type in enumerate(["", "transition_"]):
         neural_ts, loc_ts = [list(np.array([data[key] for data in all_data]).mean(0).astype(int)) for key in ["neural_times", "loc_times"]]
 
         perfs = np.array([data["nongen_scores"] for data in all_data])
-
 
         plan_perfs.append(perfs[:, neural_ts.index(test_neural), 1:])
         plan_xs.append(loc_ts[1:])
@@ -359,7 +359,7 @@ for idata, data_type in enumerate(["", "transition_"]):
         plt.plot(xs, ms)
         plt.fill_between(xs, ms-ss, ms+ss, alpha = 0.2)
     plt.xlabel("time in future", labelpad = 3.5)
-    plt.ylabel("% correctly\npredicted location", labelpad = -4)
+    plt.ylabel(ylabel, labelpad = -4)
     plt.yticks([0, 1])
     plt.ylim(0, 1)
     plt.xlim(xs[0], xs[-1])
@@ -380,7 +380,7 @@ for idata, data_type in enumerate(["", "transition_"]):
     plt.ylim(0, 1)
     plt.xticks(range(xs[0], xs[-1]+1, 2))
     plt.xlabel("time from now", labelpad = 3.5)
-    plt.ylabel("% correctly\npredicted location", labelpad = -4)
+    plt.ylabel(ylabel, labelpad = -4)
     plt.xlim(xs[0], xs[-1])
     plt.gca().spines[['right', 'top']].set_visible(False)
     plt.savefig(f"{basefigdir}future_{labels[idata]}_execution{ext}", bbox_inches = "tight", transparent = True)

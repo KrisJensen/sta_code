@@ -64,6 +64,7 @@ models = ["WM", "STA", "STA_true", "relrew", "egocentric"]
 ex_seed = 0
 for imodel, model in enumerate(models):
     os.makedirs(f"{basefigdir}{model}/", exist_ok = True)
+    os.makedirs(f"{basefigdir}{model}/input_panels", exist_ok = True)
     
     for subspace_type in ["planning", "rel"]:
         
@@ -104,9 +105,9 @@ for imodel, model in enumerate(models):
 
         #%% plot all output weights
         Wout_eff = Wout @ Csub_flat.T # (output, slots)
-        yticks = [f"subspace {i}" for i in range(0, num_slots)]
-        pysta.plot_utils.plot_slot_connectivity(Wout_eff[:, keep_slot_inds].T, num_locs, xtickrot=0, xticks = [], xlabel = "output", yticks = yticks,
-                                                filename = f"{basefigdir}{model}/output_weights{substr}{ext}", show = True, figsize = figsize, ylabel = None, transparent = True)
+        #yticks = [f"subspace {i}" for i in range(0, num_slots)]
+        pysta.plot_utils.plot_slot_connectivity(Wout_eff[:, keep_slot_inds].T, num_locs, xtickrot=0, xticks = [], xlabel = "output", yticks = range(0, num_slots),
+                                                filename = f"{basefigdir}{model}/output_weights{substr}{ext}", show = True, figsize = figsize, ylabel = "subspace number", transparent = True)
     
     
         #%% all recurrent weights
@@ -140,6 +141,17 @@ for imodel, model in enumerate(models):
             plt.savefig(f"{basefigdir}{model}/input_row{irow}{substr}{ext}", transparent = True)
             plt.show()
             plt.close()
+            
+            # annoyingly we also have to plot 1 _Panel_ at a time to avoid rasterization
+            for ipanel, panel in enumerate(Win_row.reshape(num_locs, -1, num_locs).transpose(1,0,2)):
+                plt.figure(figsize = (np.amin(figsize), np.amin(figsize)))
+                plt.imshow(panel, cmap = "coolwarm", vmin = np.amin(Win_row), vmax = np.amax(Win_row))
+                plt.gca().spines[['right', 'top', 'bottom', 'left']].set_visible(False)
+                plt.yticks([])
+                plt.xticks([])
+                plt.savefig(f"{basefigdir}{model}/input_panels/{irow}_{ipanel}{substr}{ext}", transparent = True)
+                plt.show()
+                plt.close()
             
 
         #%% plot average n+1 connectivity together with adjacency matrices
@@ -297,7 +309,7 @@ for imodel, model in enumerate(models):
                 plt.plot(plot_deltas, m, label = f"{idelta}")
                 plt.fill_between(plot_deltas, m-s, m+s, alpha = 0.2, linewidth = 0)
             plt.xlabel("order of adjacency matrix", labelpad = 3.5)
-            plt.ylabel("similarity to W", labelpad = 2.5)
+            plt.ylabel("similarity", labelpad = 2.5)
             plt.gca().spines[['right', 'top']].set_visible(False)
             #plt.legend([r'$W_\Delta = {} $'.format(str(delta)) for delta in deltas], loc = "upper center", bbox_to_anchor = (1.19, 0.8))
             plt.legend(loc = "upper center", bbox_to_anchor = (0.5, 1.15), ncol = 4,

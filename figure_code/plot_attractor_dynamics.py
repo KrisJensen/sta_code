@@ -143,7 +143,7 @@ for strength_ind in strength_inds[::-1]:
 
 plt.fill_between(np.array([num_ps[0], num_ps[0]+num_ps[1]])/np.sum(num_ps), [ymin, ymin], [ymax, ymax], zorder = -10, color = "k", alpha = 0.10, lw = 0)
 plt.gca().spines[['right', 'top']].set_visible(False)
-plt.xlabel("time", labelpad = 3.5)
+plt.xlabel("time after end of planning", labelpad = 3.5)
 plt.ylim(ymin, ymax)
 plt.xlim(0, 1)
 plt.ylabel("representational\nchange", labelpad = 3.5)
