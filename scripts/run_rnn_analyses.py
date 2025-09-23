@@ -1,9 +1,8 @@
+"""Code that submits slurm jobs for running analyses of pretrained RNNs"""
 
 #%%
-
 import pickle
 import pysta
-pysta.reload()
 import os
 os.chdir(f"{pysta.basedir}/scripts")
 from submit_slurm import submit_slurm
@@ -28,7 +27,6 @@ for command_type in ["WM", "relrew", "egocentric"]:
             print(submit_slurm(command_analysis+" dp", f"analyse_DP_{command_type}_{seed}", time = "5:00:00", partition = "gpu", extra_commands = "#SBATCH --gres=gpu:1"))
 
             command_changing_maze = f"python {pysta.basedir}/scripts/analyse_changing_maze_rnn.py {model_name} connectivity transition"
-            
             print(submit_slurm(command_changing_maze, f"analyse_{command_type}_ctrl_changing_maze_{seed}", time = "32:00:00", partition = "gpu", extra_commands = "#SBATCH --gres=gpu:1", mem = "64G"))
 
 #%% Analyse the changing maze RNNs
@@ -38,24 +36,19 @@ for command in train_commands["changing_maze"]:
     seed = model_name.split("model")[-1]
 
     command_changing_maze = f"python {pysta.basedir}/scripts/analyse_changing_maze_rnn.py {model_name} connectivity transition decoding"
-    
     print(submit_slurm(command_changing_maze, f"analyse_changing_maze_{seed}", time = "32:00:00", partition = "gpu", extra_commands = "#SBATCH --gres=gpu:1", mem = "64G"))
 
 #%% Analyse the simple tasks
 
 for task in ["static_goal", "moving_goal"]:
     for relstr in ["", "_rel"]:
-        print(relstr)
 
         for command in train_commands[task+relstr]:
-            
             model_name = pysta.utils.command_to_model_name(command)
             seed = model_name.split("model")[-1]
             
             for model_type in ["base_rnn", "sta"]:
-            
                 command_analysis = f"python {pysta.basedir}/scripts/analyse_simple_tasks.py {model_name} {model_type} collect decoding planning"
-
                 print(submit_slurm(command_analysis, f"analyse_{task}_task_{seed}_{model_type}{relstr}", time = "4:00:00"))
                         
 #%% analyse the networks with different sizes

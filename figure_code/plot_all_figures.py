@@ -1,3 +1,4 @@
+"""Code for plotting all figure panels used in the STA paper"""
 
 #%% packages
 import pysta

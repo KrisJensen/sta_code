@@ -133,8 +133,6 @@ def predict_locations_from_neurons(trial_data, test_trial_data = None, crossvali
             for iloc, loc_time in enumerate(loc_times):
                 loc_ind = loc_time-t0
                 possible_inds = np.where(num_steps >= max(neural_ind, loc_ind))[0] # can only run decoding on trials where we have data from the required time points
-                #possible_inds = np.where(num_steps > max(neural_ind, loc_ind))[0] # can only run decoding on trials where we have data from the required time points
-                #print(neural_ind, loc_ind, len(possible_inds))
                 
                 # extract some data at different time-within-trial for our trials of interest
                 rs_at_neural_time, locs_at_neural_time, locs_at_loc_time = rs[possible_inds, neural_ind, ...], locs[possible_inds, neural_ind, ..., 0].astype(int), locs[possible_inds, loc_ind, ..., 0].astype(int)
@@ -159,8 +157,7 @@ def predict_locations_from_neurons(trial_data, test_trial_data = None, crossvali
                             neural_test_ind = neural_test_time-t0
                             loc_test_ind = loc_test_time-t0
                             possible_test_inds = np.where(num_steps >= max(neural_test_ind, loc_test_ind))[0] # can only run decoding on trials where we have data from the required time points
-                            #possible_test_inds = np.where(num_steps > max(neural_test_ind, loc_test_ind))[0] # can only run decoding on trials where we have data from the required time points
-                            
+
                             rs_at_neural_test_time, locs_at_neural_test_time, locs_at_loc_test_time = rs[possible_test_inds, neural_test_ind, ...], locs[possible_test_inds, neural_test_ind, ..., 0].astype(int), locs[possible_test_inds, loc_test_ind, ..., 0].astype(int)
         
                             if held_out_loc is None:

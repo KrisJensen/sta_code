@@ -1,3 +1,4 @@
+"""Code for plotting handcrafted example representations"""
 
 #%%
 
@@ -8,7 +9,6 @@ import pickle
 import matplotlib as mpl
 from pysta import basedir
 import copy
-pysta.reload()
 ext = ".pdf"
 np.random.seed(0)
 
@@ -23,8 +23,6 @@ mpl.rcParams['font.size'] = 8
 #%%
 pysta.reload()
 data = pickle.load(open(f"{basedir}/data/examples/example_task_data.pickle", "rb"))
-cmap = "viridis"
-vmin, vmax = 2.3, 1.15
 cmap = "Greens"
 vmin, vmax = 0.3, 3.2
 no_loc = True
@@ -96,7 +94,6 @@ for agent in ["td", "sr", "sta"]:
             if agent == "sr":
                 vmin, vmax = 0.2, 5.0
             pysta.plot_utils.plot_flat_frame(filename = fname, **kwargs, cmap = "YlOrRd", vmin = vmin, vmax = vmax, show = True, figsize = figsize, mouse_size = mouse_size, cheese_size = cheese_size)
-
 
 
 # %%

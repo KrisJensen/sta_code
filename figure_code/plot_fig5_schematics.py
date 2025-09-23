@@ -1,13 +1,12 @@
+"""Code for plotting all schematics in Figure 5"""
 
 #%% load libraries
-
 import pysta
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
 import copy
 import torch
-pysta.reload()
 import os
 import matplotlib as mpl
 from pysta import basedir
@@ -158,7 +157,6 @@ pysta.plot_utils.plot_perspective_attractor(walls, vmap, vmin = 0, vmax = 1,
 
 #%% future rewards
 
-vmin, vmax, cmap = -2.3, 1.15, "viridis"
 vmin, vmax, cmap = -1.2,2.2,"Greens"
 plt.figure(figsize = (1.0, 1.0))
 ax = plt.gca()

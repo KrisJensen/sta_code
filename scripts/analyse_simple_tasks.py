@@ -1,3 +1,4 @@
+"""Here we analyse STA and RNN representations in the static and moving goal tasks"""
 
 #%% load packages
 import pysta
@@ -8,12 +9,8 @@ import copy
 import numpy as np              
 import matplotlib.pyplot as plt
 import sys
-from scipy.special import logsumexp
-from scipy.stats import pearsonr
 from sklearn.linear_model import LogisticRegression
 import os
-os.chdir("/ceph/behrens/kris/research/attractor_planner")
-pysta.reload()
 np.random.seed(0)
 
 #%% define some helper functions
@@ -160,18 +157,16 @@ def run_rnn_decoding(base_model_name, model_type, min_dist = 3, max_dist = 6, sa
 
 def decode_from_planning(base_model_name, model_type, min_dist = 3, max_dist = 6, save = True, num_trials = 10000, keep_only_good_trials = True):
     
-    # try to decode from planning period either (i) the entire future, or (ii) whether a location will be visited _at some point_ (not start or goal)
+    # try to decode from planning period whether a location will be visited _at some point_ (not start or goal)
     
     rnn, datadir, basetask = get_model(base_model_name, model_type)
     trial_data = pickle.load(open(f"{datadir}simple_{basetask}_trial_data_minmax{min_dist}-{max_dist}.pickle", "rb")) # load the trial data
     assert np.nanstd(trial_data["step_nums"][..., 0], 0).sum() == 0
     step_nums = np.nanmean(trial_data["step_nums"][..., 0], 0).astype(int)
 
-    alt_trial_data = copy.deepcopy(trial_data) # copy the trial data so we can modify it for the next decoder
+    alt_trial_data = copy.deepcopy(trial_data) # copy the trial data so we can normalise it for the decoder
     rs = alt_trial_data["rs"]
     alt_trial_data["rs"] = (rs - np.nanmean(rs, 0)[None, ...]) / (1e-10+np.nanstd(rs, 0)[None, ...])
-
-    #%%
 
     #%% try to decode location at _any_ time
     neural_time = -1

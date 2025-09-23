@@ -1,5 +1,4 @@
-
-
+"""Code for comparing the handcrafted STA, SR, and TD models"""
 
 #%%
 import pysta
@@ -7,7 +6,6 @@ import torch
 import numpy as np
 import pickle
 import sys
-pysta.reload()
 from pysta import basedir
 
 
@@ -71,7 +69,6 @@ def compare_handcrafted_models(seed = 0, save = True):
 
 
 # %%
-
 
 if __name__ == "__main__":
 

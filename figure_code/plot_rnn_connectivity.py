@@ -1,13 +1,12 @@
+"""Code for plotting all RNN connectivity panels"""
 
 #%% load libraries
-
 import pysta
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
 import copy
 import torch
-pysta.reload()
 import os
 import matplotlib as mpl
 from pysta import basedir
@@ -34,7 +33,7 @@ basenames = {"WM": "MazeEnv_L4_max6_landscape_changing-rew_dynamic-rew_constant-
             "egocentric": "MazeEnv_L4_max6_landscape_changing-rew_dynamic-rew_constant-maze_ego_planrew_plan5-6-7_VanillaRNN_iter10_tau5.0_opt_N800_linout_model",}
 
 
-#%% plot connectivities
+#%% some functions to load things
 
 def construct_true_Csubs(Csubs, rnn):
     Csubs_true = np.zeros(Csubs.shape)
@@ -85,7 +84,6 @@ for imodel, model in enumerate(models):
         Win = Win[:, np.concatenate([obs_inds["loc"], obs_inds["goal"]])]
         adj = rnn.env.adjacency[0].detach().numpy()
         
-
         A2, A3 = adj @ adj, adj @ adj @ adj
         num_locs = adj.shape[0]
 
@@ -96,8 +94,7 @@ for imodel, model in enumerate(models):
         keep_input_inds = np.concatenate([np.arange(16), np.arange(32, 32+(num_slots-1)*16)])
         keep_slot_inds = np.arange(num_slots*16) # keep only the first 5 slots
         Win_eff_plot = Win_eff[:, keep_input_inds][keep_slot_inds, :]
-        xticks = ["location"]+["R("+r"$\delta = $"+f"{i})" for i in range(1, num_slots)] #, "R("+r"$\delta = 2$"+")"]
-        xticks = ["location"]+[r"$\delta$"+f"={i} reward" for i in range(1, num_slots)] #, "R("+r"$\delta = 2$"+")"]
+        xticks = ["location"]+[r"$\delta$"+f"={i} reward" for i in range(1, num_slots)]
             
         pysta.plot_utils.plot_slot_connectivity(Win_eff_plot, num_locs, filename = f"{basefigdir}{model}/input_weights{substr}{ext}", show = True,
                                                 xticks = xticks, figsize = figsize,
@@ -105,7 +102,6 @@ for imodel, model in enumerate(models):
 
         #%% plot all output weights
         Wout_eff = Wout @ Csub_flat.T # (output, slots)
-        #yticks = [f"subspace {i}" for i in range(0, num_slots)]
         pysta.plot_utils.plot_slot_connectivity(Wout_eff[:, keep_slot_inds].T, num_locs, xtickrot=0, xticks = [], xlabel = "output", yticks = range(0, num_slots),
                                                 filename = f"{basefigdir}{model}/output_weights{substr}{ext}", show = True, figsize = figsize, ylabel = "subspace number", transparent = True)
     
@@ -116,7 +112,6 @@ for imodel, model in enumerate(models):
         Wrec_eff_plot = Wrec_eff[keep_slot_inds, :][:, keep_slot_inds] # (slots, slots)
         pysta.plot_utils.plot_slot_connectivity(Wrec_eff_plot, num_locs, filename = f"{basefigdir}{model}/recurrent_weights{substr}{ext}", show = True, figsize = figsize, vmin = 0.2, vmax = 0.97, transparent = True,
                                                 yticks = [str(i) for i in range(0, num_slots)], xticks = [str(i) for i in range(0, num_slots)], xlabel = "input subspace", ylabel = "output subspace", xtickrot = 0)
-
 
         #%% also plot 1 input row at a time
         num_slots = 3
@@ -311,7 +306,6 @@ for imodel, model in enumerate(models):
             plt.xlabel("order of adjacency matrix", labelpad = 3.5)
             plt.ylabel("similarity", labelpad = 2.5)
             plt.gca().spines[['right', 'top']].set_visible(False)
-            #plt.legend([r'$W_\Delta = {} $'.format(str(delta)) for delta in deltas], loc = "upper center", bbox_to_anchor = (1.19, 0.8))
             plt.legend(loc = "upper center", bbox_to_anchor = (0.5, 1.15), ncol = 4,
                     handlelength = 1.2, handletextpad = 0.5, columnspacing = 0.8, frameon = False)
             plt.xticks(plot_deltas)
@@ -328,7 +322,6 @@ for imodel, model in enumerate(models):
         plt.fill_between(abs_deltas, m-s, m+s, alpha = 0.2, color = "k", linewidth = 0)
         plt.xlabel("subspace difference")
         plt.ylabel("average strength")
-        #plt.yticks([0.15,0.20,0.25,0.30])
         plt.gca().spines[['right', 'top']].set_visible(False)
         plt.xticks(abs_deltas)
         plt.savefig(f"{basefigdir}{model}/scale{substr}{ext}", bbox_inches = "tight", transparent = True)

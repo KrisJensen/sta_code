@@ -1,3 +1,4 @@
+"""Code for analysing performance and representations for RNNs of different sizes"""
 
 #%%
 import torch
@@ -20,7 +21,8 @@ def analyse_by_network_size(base_model_name, sizes, save = True):
         size_accs.append([])
         model_name = base_model_name.replace(f"N{base_Nrec}", f"N{size}")
         rnn = pysta.utils.load_model(model_name, store_all_activity = False)[0]
-
+        
+        # compute accuracy
         for _ in range(10):
             rnn.reset()
 
@@ -31,8 +33,7 @@ def analyse_by_network_size(base_model_name, sizes, save = True):
             acc = batch_accs[step_nums == 0, :].mean() # just consider initial accuracy
             size_accs[-1].append(acc)
             
-        # also run small future decoding
-        
+        # also assess future decoding
         rnn.env.planning_steps = int(np.amax(rnn.env.planning_steps)) # match planning steps for simplicity
         trial_data = pysta.analysis_utils.collect_data(rnn, num_trials = 10000) # this just simulates enough batches to get num_trials data and puts it all into a dict
         cv_result = pysta.analysis_utils.predict_locations_from_neurons(trial_data, crossvalidate_loc = True, neural_times = [-1, 0], loc_times = [1,2,3,4,5])
@@ -53,7 +54,7 @@ if __name__ == "__main__":
         sizes = [int(size) for size in sys.argv[2:]]
     else:
         base_model_name = "MazeEnv_L4_max6/landscape_changing-rew_dynamic-rew_constant-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5_opt/N100_linout/model10"
-        sizes = [100,200,300,400,600,800,1000]
+        sizes = [50,100,150,250,350,500,600,800]
 
     seed = int(base_model_name.split("model")[-1])
     np.random.seed(seed)

@@ -1,3 +1,4 @@
+"""Code for plotting all schematics in Figure 4"""
 
 #%% load libraries
 
@@ -9,7 +10,6 @@ import copy
 import matplotlib as mpl
 import torch
 from scipy.sparse.csgraph import dijkstra
-pysta.reload()
 from pysta import basedir
 from scipy.ndimage import gaussian_filter1d
 from matplotlib import patches
@@ -26,7 +26,6 @@ mpl.rcParams['font.size'] = 8
 
     
 #%% plot scaffolds with trajectories on top
-from pysta.utils import schematic_walls as walls
 ex_seed = 31
 example_model = f"MazeEnv_L4_max6/landscape_changing-rew_dynamic-rew_constant-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout/model{ex_seed}"
 rnn = pysta.utils.load_model(example_model)[0]
@@ -36,15 +35,6 @@ num_locs = walls.shape[0]
 L = int(np.sqrt(num_locs))
 adjacency = pysta.maze_utils.compute_adjacency(walls)[0].numpy()
 all_dists = dijkstra(pysta.maze_utils.compute_adjacency(walls)[0], directed=False, unweighted = True)
-all_locs = [[(1,2), (2,2), (2,1), (1,1), (1,0)],
-            [(2,2), (2,1), (1,1), (1,0)],
-            [(2,0), (1,0), (1,1), (0,1)]] # trajectories
-
-all_locs = [
-    [(1,1), (2,1), (2,2), (3,2), (3,1)],
-    [(2,1), (2,2), (3,2), (3,1)],
-    [(3,3), (3,2), (2,2), (1,2)]
-]
 
 all_locs = [
     [(1,2), (2,2), (3,2), (3,1), (3,0)],
@@ -69,7 +59,6 @@ for ilocs, locs in enumerate(all_locs):
             chunk = np.concatenate([chunk, chunks[ichunk+1][:1]])
         ax.plot(smooth_locs[chunk, 0], smooth_locs[chunk, 1], color = cols[ichunk], lw = 6)
 
-    #ax.plot(smooth_locs[:, 0], smooth_locs[:,1])
     ax.axis("off")
     plt.savefig(f"{basedir}/figures/rnn_decoding/maze_scaffold{ilocs}{ext}", bbox_inches = "tight", transparent = True)
     plt.show()
@@ -94,7 +83,6 @@ for ipath, locs in enumerate(all_locs):
             vmap[z, :] = np.exp(-1.7*np.amin(all_dists[adjacency[path_inds[z-1], :].astype(bool), :], 0)**2)/adjacency[path_inds[z-1], :].sum()
 
     edgecolors = [[1,1,1,0] for _ in range(vmap.size)]
-    #edgecolors[9*2 + 4] = np.array([240,106,167])/255
             
     pysta.reload()
     ax = pysta.plot_utils.plot_perspective_attractor(walls, vmap, edgecolors = edgecolors, filename = None, plot_proj = False, cmap = "YlOrRd", vmin = -0.15, vmax = 1.05, figsize = (3.5,2.2), aspect = (1,1,2.2), view_init = (-22,-10,-90))
@@ -134,10 +122,8 @@ plt.close()
 
 #%% plot an example RNN
 
-
 styleA = "Simple, tail_width=0.5, head_width=3.5, head_length=4"
 styleB = "|-|, widthB=2.7, angleA=0, widthA=0, angleB=0"
-
 
 cell_locs = np.array([
     [3,8],

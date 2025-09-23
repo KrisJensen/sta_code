@@ -1,4 +1,5 @@
 
+"""Code for analysing the robustness and dynamics of RNN and STA representations in response to perturbations"""
 
 #%%
 import numpy as np
@@ -143,12 +144,10 @@ def run_attractor_analyses(model_name, sta = False, ctrl = False,
 if __name__ == "__main__":
     
     model_name = "MazeEnv_L4_max6/landscape_changing-rew_dynamic-rew_constant-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout/model35"
+    paths = [[0,4,8,9,10,10,10], [0,1,2,6,10,10,10]]
     seed = int(model_name.split("model")[-1])
     np.random.seed(seed)
     torch.manual_seed(seed)
-
-    model_name = "MazeEnv_L4_max6/landscape_changing-rew_dynamic-rew_constant-maze/allo_planrew_plan5-6-7/VanillaRNN/iter10_tau5.0_opt/N800_linout/model35"
-    paths = [[0,4,8,9,10,10,10], [0,1,2,6,10,10,10]]
 
     print(f"Running RNN attractor analysis for {model_name}.")
     sys.stdout.flush()

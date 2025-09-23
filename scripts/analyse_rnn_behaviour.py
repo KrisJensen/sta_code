@@ -1,3 +1,4 @@
+"""Code for analysing how well reward and value predict RNN choices"""
 
 #%%
 
@@ -7,9 +8,7 @@ import pickle
 import torch
 import sys
 import copy
-pysta.reload()
 from pysta import basedir
-
 
 def analyse_rnn_behaviour(base_model_name, seeds, save = True):
 

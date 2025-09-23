@@ -1,12 +1,11 @@
+"""Code for plotting all decoding analyses for the RNNs trained in single mazes"""
 
 #%% load libraries
-
 import pysta
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
 import torch
-pysta.reload()
 from pysta.utils import compute_model_support
 from pysta import basedir
 ext = ".pdf"
@@ -150,7 +149,7 @@ for imodel, model in enumerate(models):
     
     #%% plot for the end of planning
     
-    t_neural = -1 if -1 in list(mean_neural) else 0
+    t_neural = -1
     ind = list(mean_neural).index(t_neural) # index in the data array
     
     pysta.plot_utils.plot_prediction_result(mean_nongen_scores[ind:ind+1, 1:], [t_neural], mean_loc[1:], cols = [plt.get_cmap("tab10")(0)], figsize = figsize, ymax = 1.0,
@@ -183,7 +182,6 @@ for imodel, model in enumerate(models):
     
     # plot the result
     ts_train = (neural_time, loc_time)
-    #ts_train = None
     pysta.plot_utils.plot_prediction_result(mean_scores[plot_inds, :], mean_neural[plot_inds], mean_loc, xticks = xticks, xlabel = xlabel, cols = sequence_colors, figsize = figsize, yticks = [0, 1],
                                             ymax = 1.07, error = std_scores[plot_inds, :], ts_train = ts_train, show = False, labelpad = -5, filename = None)
         
@@ -248,7 +246,6 @@ for idata, decoding_data in enumerate([all_planning_decoding, all_execution_deco
         inds = [list(decoding_data[name+"_neural"].astype(int)).index(-1) for name in plot_names]
         assert len(set(inds)) == 1
         ind = inds[0]
-        #ind = 0
         xvals, mean_accs, std_accs = xvals[:, 1:], mean_accs[:, ind, 1:], std_accs[:, ind, 1:]
         
         
@@ -259,7 +256,6 @@ for idata, decoding_data in enumerate([all_planning_decoding, all_execution_deco
         plt.fill_between(x, m-s, m+s, alpha = 0.2, color = cols[i], edgecolor = [1,1,1,0], zorder = -i)
     
     if idata == 0:
-        #plt.legend(loc = "upper center", bbox_to_anchor = (0.5, 1.25), ncol = 3, frameon = False, columnspacing = 0.4, handlelength = 0.8, handletextpad = 0.25)
         xlabel = "time in future"
     else:
         xlabel = "time from now"
@@ -329,14 +325,10 @@ plt.yticks([0, 1])
 plt.xticks(steps)
 plt.gca().spines[['right', 'top']].set_visible(False)
 plt.xlabel("true time in future", labelpad = 3.5)
-#plt.ylabel("% correctly predicted", labelpad = 0)
 plt.ylabel("% correctly\npredicted time", labelpad = -7)
 plt.legend(loc = "upper center", bbox_to_anchor = (0.6, 0.72), ncol = 1, frameon = False, columnspacing = 0.4, handlelength = 1.2, handletextpad = 0.5)
 plt.savefig(f"{pysta.basedir}/figures/rnn_decoding/decode_time_of_loc{ext}", bbox_inches = "tight", transparent = True)
 plt.show()
-
-
-
 
 
 #%%

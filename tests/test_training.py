@@ -1,8 +1,9 @@
+"""Code for testing that the RNN initialisation and training runs"""
 
 #%%
 import pysta
 import torch
-pysta.reload()
+import numpy as np
 
 def test_training_runs():
     print("\nTest that training runs")

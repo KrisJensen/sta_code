@@ -1,8 +1,9 @@
+"""Code for testing that the maze environment runs and behaves as expected"""
 
 #%%
 import pysta
 import torch
-pysta.reload()
+import numpy as np
 
 def test_maze_env_runs():
     """

@@ -1,7 +1,9 @@
+"""Code for running each of the test suites"""
+
 import os
 import pysta
-pysta.reload()
 os.chdir(f"{pysta.basedir}")
+os.makedirs(f"{pysta.basedir}/figures/tests", exist_ok = True)
 
 print("\nRunning all test!")
 

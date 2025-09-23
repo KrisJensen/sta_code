@@ -1,11 +1,12 @@
- #%% load stuff
+ """Here we generate some example value functions and representations for different handcrafted agents"""
+ 
+ #%% load libraries
  
 import pysta
 import torch
 import numpy as np
 import sys
 import pickle
-pysta.reload()
 from pysta import basedir
 
 save = True
@@ -79,7 +80,7 @@ if save:
 
 
 
-#%% now look at different agent representations #####
+#%% now look at different agent representations
 
 env_kwargs = {"output_format": "egocentric", "planning_steps": 0, "batch_size": 101, "max_steps": max_steps, "rew_goal": 1.0, "rew_nogoal": 0.0}
 envs = [

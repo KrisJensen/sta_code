@@ -1,6 +1,5 @@
 """
-consider RNNS train on different tasks, and quantify their performance + regularization costs across tasks.
-for now we do this with RNNs trained in the 'working memory' setting.
+consider RNNs trained on different tasks, and quantify their performance + regularization costs across tasks.
 """
 
 #%%

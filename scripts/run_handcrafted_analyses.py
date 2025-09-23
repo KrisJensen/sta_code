@@ -1,7 +1,6 @@
-
+"""Code that submit slurm jobs for the analyses of handcrafted models"""
 
 import pysta
-pysta.reload()
 import os
 os.chdir(f"{pysta.basedir}/scripts")
 from submit_slurm import submit_slurm

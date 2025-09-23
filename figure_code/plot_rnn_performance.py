@@ -1,3 +1,4 @@
+"""Code for plotting the learning curves and behaviour of RNNs against reward and value differences"""
 
 #%%
 
@@ -7,7 +8,6 @@ import matplotlib.pyplot as plt
 import pickle
 import copy
 import torch
-pysta.reload()
 from pysta import basedir
 from scipy.stats import binned_statistic
 ext = ".pdf"
@@ -45,7 +45,6 @@ for idata in range(len(epochs)):
     plt.plot(xs[::10], ys[::10])
 
 plt.gca().spines[['right', 'top']].set_visible(False)
-#plt.xlim(-1000, 50000)
 plt.xlabel("epoch", labelpad = 3.5)
 plt.ylabel("performance", labelpad = 2.5)
 plt.xlim(-xs[-1]*0.01, xs[-1])
@@ -58,7 +57,6 @@ plt.close()
 results = pickle.load(open(f"{basedir}/data/rnn_analyses/analyse_performance.p", "rb"))
 
 plt.figure(figsize = figsize)
-#for idata in range(len(epochs)):
 for model_name in model_names:
     ys, ctrl = results[model_name]["frac_optimal"], results[model_name]["rand_optimal"]
     xs = np.arange(len(ys))
@@ -67,7 +65,6 @@ for model_name in model_names:
 plt.plot(xs, ctrl, color = np.ones(3)*0.6)
 
 plt.gca().spines[['right', 'top']].set_visible(False)
-#plt.xlim(-1000, 50000)
 plt.xlabel("action number", labelpad = 3.5)
 plt.ylabel("performance", labelpad = 2.5)
 plt.xlim(xs[0], xs[-1])
@@ -92,7 +89,6 @@ for imetric, metric_str in enumerate(["rew0", "val0"]):
         all_opts.append(np.argmax(metric, axis = -1) == act0.astype(int)) # is the action optimal?
         sorted_metric = np.sort(metric, axis = -1)
         all_deltas.append(sorted_metric[:, -1] - sorted_metric[:, -2]) # difference between best and second best reward
-        #all_opts.append(results[model_name]["opt0"])
     
     cat_deltas = np.concatenate(all_deltas, axis = 0)
     min_val, max_val = np.amin(cat_deltas), np.quantile(cat_deltas, 0.95)
@@ -105,7 +101,6 @@ for imetric, metric_str in enumerate(["rew0", "val0"]):
         plt.plot(xs, ys)
         
     plt.gca().spines[['right', 'top']].set_visible(False)
-    #plt.xlim(-1000, 50000)
     plt.xlabel(f"{labels[imetric]} difference", labelpad = 3.5)
     plt.ylabel("accuracy", labelpad = 2.5)
     plt.xlim(-xs[-1]*0.01, xs[-1])

@@ -1,11 +1,10 @@
-
+"""Code for plotting all schematics in Figure 1"""
 
 #%%
 
 import numpy as np
 import torch
 import pysta
-pysta.reload()
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -61,7 +60,6 @@ locs = [(0,1), (1,1), (1,0), (2,0)]
 loc_inds = np.array([pysta.maze_utils.loc_to_index(loc, L = L) for loc in locs])
 dists_to_locs = dists[loc_inds, :]
 acts = np.exp(-1.7*dists_to_locs**2)
-
 
 pysta.reload()
 edgecolors = [[1,1,1,0] for _ in range(acts.size)]
@@ -180,7 +178,6 @@ for iloc, loc in enumerate(cell_locs[1:]):
     style = styleA if ex else styleB
     kw = dict(arrowstyle=style, color=plt.get_cmap("coolwarm")(1-np.abs(dtheta)/np.pi))
     constyle = "arc3,rad="+str(-np.sign(dtheta)*0.7*(1-np.abs(dtheta/np.pi)))
-    #print(loc, dtheta, constyle)
     a = patches.FancyArrowPatch(0.91*loc0, 0.91*loc,
                              connectionstyle=constyle, **kw, lw = 0.8 if ex else 1.14)
 

@@ -1,3 +1,4 @@
+"""Code for plotting supplementary panels on models with different sizes"""
 
 #%%
  
@@ -7,8 +8,6 @@ import matplotlib.pyplot as plt
 import pickle
 import copy
 import torch
-from scipy.stats import pearsonr
-pysta.reload()
 from pysta import basedir
 ext = ".pdf"
 np.random.seed(0)

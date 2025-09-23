@@ -121,7 +121,6 @@ class MazeEnv():
         else:
             plan_step_str = f"plan{'-'.join([str(val) for val in self.planning_steps])}"
         
-        #return f"MazeEnv/{L_str}/max{self.max_steps}/{rewtype_str}/{changing_rew_str}/{dynamic_str}/{changing_maze_str}/{out_str}/{rew_obs_str}/{plan_step_str}"
         return f"MazeEnv_{L_str}_max{self.max_steps}/{rewtype_str}_{changing_rew_str}_{dynamic_str}_{changing_maze_str}/{out_str}_{rew_obs_str}_{plan_step_str}"
 
     def sample_maze(self, walls = None):

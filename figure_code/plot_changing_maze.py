@@ -1,3 +1,4 @@
+"""Code for plotting all panels related to RNNs trained in changing environments"""
 
 #%% load libraries
 
@@ -9,7 +10,6 @@ import copy
 import torch
 import matplotlib as mpl
 from scipy.stats import pearsonr
-pysta.reload()
 from pysta import basedir
 
 ext = ".pdf"
@@ -71,6 +71,7 @@ walls = changing_maze_results["wall_configs"] # the walls used in the trials
 all_adjs = np.array(changing_maze_results["adjs"]).reshape((-1, 16*16))
 all_adjs = 2*all_adjs - 1
 
+# pick maximally differente xamples
 adj_cors = (all_adjs[None, ...] * all_adjs[:, None, :]).mean(-1) # (num_walls, num_walls, 16*16)
 ind1, ind2 = [arr[0] for arr in np.where(adj_cors == np.amin(adj_cors))]
 adj1, adj2 = all_adjs[ind1], all_adjs[ind2]
@@ -241,7 +242,6 @@ for idata, datapoints in enumerate(data.T):
     plt.scatter(jitters+xs[idata], datapoints, marker = ".", color = "k", alpha = 0.5, linewidth = 0.0, s = 80)
     
 plt.ylabel("wall input projection")
-#plt.xticks([0, 1], ["wall-adjacent", "reference"], rotation = 45, ha = "right")
 plt.xticks(xs, ["through wall   ", "   adjacent", "other"])
 plt.axhline(0.0, color = "k", lw = 1)
 plt.gca().spines[['right', 'top']].set_visible(False)
@@ -317,7 +317,6 @@ plt.ylabel("pattern overlap")
 plt.savefig(f"{basefigdir}decoding_model_support{ext}", bbox_inches = "tight", transparent = True)
 plt.show()
 plt.close()
-    
 
 
 #%% look at future position coding

@@ -1,7 +1,5 @@
 
-"""
-in this file we write code for plotting a bunch of schematic figures.
-"""
+"""Code for plotting all schematics in Figure 2"""
 
 #%%
 
@@ -9,7 +7,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import torch
 import pysta
-pysta.reload()
 from pysta.maze_utils import loc_to_index
 from pysta.plot_utils import Arrow3D
 from pysta.plot_utils import plot_perspective_attractor
@@ -185,8 +182,6 @@ for ipath, locs in enumerate(all_locs):
 stim = (2, 1, 0)
 excite = [(1,1,1), (1,2,0), (1,1,0), (3,1,1), (3,2,0), (3,1,0)]
 inhibit = [(2, x // 3, x % 3) for x in range(9) if not (x%3 == 0 and x // 3 == 1)]
-
-#acts_con = [act*0.0 + 0.5 for act in acts_plan]
 
 act_cols = [[np.ones(3)*0.92 for _ in range(9)] for _ in range(4)]
 

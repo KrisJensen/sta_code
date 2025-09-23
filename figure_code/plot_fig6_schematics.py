@@ -1,11 +1,10 @@
-
+"""Code for plotting all schematics in Figure 6"""
 
 #%% load libraries
 import pysta
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-pysta.reload()
 from pysta import basedir
 from pysta.maze_utils import loc_to_index
 from pysta.plot_utils import plot_perspective_attractor
@@ -97,7 +96,7 @@ plt.show()
 plt.close()
 
 
-# %% # plot schematic for the 'transition' input analysis
+#%% plot schematic for the 'transition' input analysis
 
 # on path
 walls_all = np.zeros(walls.shape)
@@ -108,7 +107,6 @@ Nmod = 2
 for mod in range(Nmod):
     for i in range(4):
         for loc in [4,7]:
-            #act_cols[mod][loc][i] = cols["weak_ex"]
             act_cols[mod][loc][i] = cols["neutral"]
     act_cols[mod][4][2] = cols["strong_inh"]
     act_cols[mod][7][0] = cols["strong_inh"]

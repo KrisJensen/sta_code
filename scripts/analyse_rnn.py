@@ -1,7 +1,6 @@
 
 """
-here we run a suite of analyses on a pre-trained RNN to query the learned representations
-
+Here we run a suite of analyses on a the pre-trained RNNs to query the learned representations and connectivity
 """
 
 #%% load packages
@@ -11,7 +10,6 @@ import pickle
 import numpy as np
 import sys        
 from sklearn.linear_model import LogisticRegression
-pysta.reload()
 from pysta import basedir
 
 #%% load a model and collect data

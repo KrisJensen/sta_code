@@ -1,4 +1,4 @@
-
+"""Code for plotting decoding analyses on RNNs trained in the static and moving goal tasks"""
 
 #%%
 
@@ -32,7 +32,7 @@ basenames["STA"] = {key: "sta_"+value for (key, value) in basenames["RNN"].items
 min_dist, max_dist = 3, 6
 cols = {"static_relrew": plt.get_cmap("tab10")(1), "static_planrew": plt.get_cmap("tab10")(1), "moving_relrew": plt.get_cmap("tab10")(2), "moving_planrew": plt.get_cmap("tab10")(2)}
 
-#%%
+#%% plot full future decoding
 
 for basetask in basetasks:
     results = []
@@ -65,7 +65,7 @@ for basetask in basetasks:
     plt.show()
     plt.close()
         
-#%%
+#%% plot decoding for being at some location at any time in the future
 
 for basetask in basetasks:
     results = []

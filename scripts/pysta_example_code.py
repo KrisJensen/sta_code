@@ -6,10 +6,8 @@ This file provides a minimal example of using the 'pysta' package for simulating
 #%% load some packages
 
 import pysta
-pysta.reload()
 from pysta import basedir
 import numpy as np
-from scipy.ndimage import gaussian_filter1d
 import torch
 import os
 np.random.seed(1)
@@ -28,7 +26,7 @@ env.plot(filename = f"{basedir}/figures/examples/environment.pdf")
 
 #%% initialize a model
 print("\nInstantiating Spacetime Attractor model")
-sta = pysta.agents.SpaceTimeAttractor(env, iters_per_action = 100)
+sta = pysta.agents.SpaceTimeAttractor(env, iters_per_action = 200)
 
 # compute a representation and policy
 print("\nRunning dynamics to compute STA representation and policy")
@@ -41,7 +39,7 @@ pysta.plot_utils.plot_perspective_attractor(filename = f"{basedir}/figures/examp
 
 #%% run a full sta trial and plot a gif
 print("\nRunning a full STA trial")
-#sta.iters_per_action = 100
+sta.iters_per_action = 100 # reduce number of iterations per action to speed things up a bit. This means the STA may not fully converge between actions
 step_num = 0
 sta.store_all_activity = True
 np.random.seed(0)
@@ -51,7 +49,7 @@ while step_num < 6:
         step_num = env.step_num
         print(step_num)
 
-#%%
+#%% plot a gif
 print("\nPlotting a lil' gif")
 activity, locs = [np.array(sta.all_acts[i])[::8, 0, ...] for i in [0,1]] # extract activity and position at every network iteration
 pysta.plot_utils.plot_perspective_gif(env.walls[0], activity, locs = locs, goal = env.goal[0], smooth = 2.5, tempdir = f"{basedir}/figures/examples/temp/", filename = f"{basedir}/figures/examples/sta.gif", delay = 20, vmin = -0.1, vmax = 1.2, print_freq = 25)

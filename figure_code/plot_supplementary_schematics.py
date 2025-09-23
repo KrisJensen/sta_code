@@ -1,12 +1,12 @@
-#%% load libraries
+"""Code for plotting schematics used in supplementary figures"""
 
+#%% load libraries
 import pysta
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
 import copy
 import matplotlib as mpl
-pysta.reload()
 from pysta import basedir
 ext = ".pdf"
 np.random.seed(0)

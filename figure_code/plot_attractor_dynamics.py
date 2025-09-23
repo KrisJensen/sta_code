@@ -1,7 +1,6 @@
-
+"""Code for plotting all panels related to the attrator dynamics analyses"""
 
 #%%
-# import numpy as np
 import torch
 import matplotlib.pyplot as plt
 import pysta
@@ -42,7 +41,6 @@ ctrl_deltas, ctrl_deltas_raw = [ctrl_result[k] for k in ["deltas", "deltas_raw"]
 adjacency = pysta.maze_utils.compute_adjacency(walls)[0].numpy()
 num_locs = adjacency.shape[0]
 L = int(np.sqrt(num_locs))
-vmin, vmax, cmap = -2.3, 1.15, "viridis"
 vmin, vmax, cmap = -1.2,2.2,"Greens"
 
 plt.figure(figsize = (1.6, 1.6))
@@ -85,7 +83,6 @@ xs = np.linspace(0, 1, len(plot_deltas))
 sta_xs = np.linspace(0, 1, len(sta_plot_deltas))
 
 rnn_col = np.array(plt.get_cmap("tab10")(0))
-sta_col = np.minimum(1.0, rnn_col*1.5)
 sta_col = np.array([49, 204, 199])/255
 cols = [sta_col, rnn_col, np.ones(3)*0.6]
 
@@ -107,9 +104,9 @@ plt.legend(frameon = False, handletextpad = 0.5, handlelength = 0.6, loc = "lowe
 plt.savefig(f"{basedir}/figures/attractor/change_by_stim.pdf", bbox_inches = "tight", transparent = True)
 plt.show()
 
-#%% also raw
-plot_deltas_raw = deltas_raw[:, ind]
-plot_deltas_raw_ctrl = ctrl_deltas_raw[:, ind]
+#%% also raw firing rates
+plot_deltas_raw = deltas_raw[:, ind][:2*half_ind]
+plot_deltas_raw_ctrl = ctrl_deltas_raw[:, ind][:2*half_ind]
 
 xs = np.linspace(0, 1, len(plot_deltas_raw))
 

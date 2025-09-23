@@ -44,7 +44,7 @@ def main_train(kwargs):
     all_losses, all_accs = [], []
     best_loss = np.inf
 
-    # 5 sec to check
+    # print training message
     time.sleep(5e-2)
     print(f"Training {kwargs['num_epochs']} batches of size {rnn.env.batch} on {device}")
 

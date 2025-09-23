@@ -21,7 +21,6 @@ def reload():
     importlib.reload(pysta.subspace_utils)
     
 
-
 def optimal_initial_action_freq(agent, reset_after = True, ignore_futile = True):
     """"
     Parameters:
@@ -169,7 +168,6 @@ def compute_model_support(results):
                         if (ta1 != tb1) and (ta2 > ta1) and (min(ta1, tb1) >= 0): # don't compare same neural time points, and don't compare 'current' decoder
                             perf = results["scores"][ia1, ia2, ib1, ib2]
                             res[int(cond((ta1, ta2), (tb1, tb2)))].append(perf)
-        #all_res.append(res)
         all_res.append([np.mean(res[i]) for i in range(2)])
     return all_res
     

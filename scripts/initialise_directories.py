@@ -1,3 +1,4 @@
+"""Some code for instantiating various directories that models, data, and figure will be saved to"""
 
 #%%
 import pysta

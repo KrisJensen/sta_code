@@ -1,8 +1,8 @@
+"""For for submitting slurm jobs that train all RNNs used in this work"""
 
 #%%
 import pickle
 import pysta
-pysta.reload()
 import os
 os.chdir(f"{pysta.basedir}/scripts")
 from submit_slurm import submit_slurm
@@ -65,7 +65,7 @@ for seed in seeds:
     print(submit_slurm(command, f"train_RNN_static_goal_rel_{seed}"))
     commands["static_goal_rel"].append(command)
 
-#%% train networks of different sizes 100-10000
+#%% train networks of different sizes 50-800
 sizes = [50,100,150,250,350,500,600,800]
 commands["sizes"] = []
 seed = 10
@@ -74,8 +74,7 @@ for size in sizes:
     print(submit_slurm(command, f"train_RNN_size{size}_{seed}", time = "48:00:00"))
     commands["sizes"].append(command)    
 
-#%% store commands
-
+#%% save commands
 pickle.dump(commands, open(f"{pysta.basedir}/slurm/commands/train_all_rnns.p", "wb"))
 
 

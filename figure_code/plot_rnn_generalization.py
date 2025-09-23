@@ -1,3 +1,4 @@
+"""Code for plotting the performance and metabolic cost of different RNNs in different tasks"""
 
 #%%
 
@@ -7,7 +8,6 @@ import matplotlib.pyplot as plt
 import pickle
 import copy
 import matplotlib as mpl
-pysta.reload()
 from pysta import basedir
 ext = ".pdf"
 np.random.seed(0)
@@ -30,7 +30,7 @@ gen_data = pickle.load(open(f"{basedir}/data/comparisons/rnn_generalisation.pick
 short_labels = ["landscape", "moving", "static"]
 agent_colors = [plt.get_cmap("tab10")(i) for i in [1,2,0]]
 
-order = np.array([2,1,0])
+order = np.array([2,1,0]) # plotting order is static -> moving -> landscape
 
 
 loss_labels = ["acc", "rate", "param"]
@@ -45,7 +45,6 @@ for iloss, loss_label in enumerate(loss_labels):
 
     for ienv, ind in enumerate(order):
         env = short_labels[ind]
-        #for ienv, env in enumerate(short_labels):
 
         fig = plt.figure(figsize = (1.65,1.15))
         ax = plt.gca()
@@ -64,8 +63,6 @@ for iloss, loss_label in enumerate(loss_labels):
         ax.set_xticks(xs)
         ax.set_xticklabels([short_labels[i] for i in order], rotation = 35, ha = "right", rotation_mode="anchor")
         ax.tick_params(axis='x', which='major', pad=2)
-        #xticks = {"static": "static", "moving": "moving", "landscape": "land-\nscape"}
-        #ax.set_xticklabels([xticks[short_labels[i]] for i in order])
 
         if ienv == 0 or iloss == 2:
             ax.set_ylabel(ylabels[iloss], labelpad = -7)

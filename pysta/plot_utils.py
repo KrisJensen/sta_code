@@ -136,7 +136,6 @@ def plot_flat_frame(walls, figsize = (1.5,1.5), filename = None, cheese_size = 3
     ax.set_ylim(-0.5, L-0.5)
     ax.set_xticks([])
     ax.set_yticks([])
-    #ax.axis("off")
 
     if filename is not None:
         plt.savefig(filename, bbox_inches = "tight", transparent = True)
@@ -166,7 +165,6 @@ def plot_maze_scaffold(adjacency, ax = None, zloc = None, cols = None, maze_col 
                 ax.plot([n1x, n2x], [n1y, n2y], color = maze_col, lw = lw)
                 
     ax.scatter(xs, ys, color = maze_col, s = s, marker = "8", zorder = 1)
-    #ax.scatter(xs, ys, cmap = "YlOrRd", c = np.random.uniform(0, 1, N), s = s, marker = "8", zorder = 100)
     
     if vmap is not None:
         ax.scatter(xs, ys, c = vmap, cmap = cmap, marker = ".", zorder = 2, s = s*1.8, edgecolors = edgecols, lw = 2.5)
@@ -175,7 +173,7 @@ def plot_maze_scaffold(adjacency, ax = None, zloc = None, cols = None, maze_col 
     ax.set_ylim(-0.5, L-0.5)
     return
 
-### code for plotting STA representations ####
+#%% code for plotting STA representations
 
 def plot_perspective_attractor(walls, vmap, state_actions = False, maze_col = None, act_cols = None, override_cols = [], loc = None, goal = None, vmin = None,
                                vmax = None, dpi = 100, cmap = "YlOrRd", filename = None, lw = 4, plot_proj = True, figsize = (7,4),
@@ -343,8 +341,6 @@ def plot_perspective_attractor(walls, vmap, state_actions = False, maze_col = No
         
         for iz, zval in enumerate(zgoals):
             ax.scatter(goal_loc[0, goal_inds[iz]], L-1-goal_loc[1, goal_inds[iz]], zval, color = "k", marker = cheese_marker, s = 60, lw = 0.3)
-            #ax.scatter(goal_loc[0, iz], L-1-goal_loc[1, iz], zval, color = "k", marker = cheese_marker, s = 60, lw = 0.3)
-            
             
     if loc is not None:
         if (type(loc) == int) or (len(loc.shape) == 0) or (len(loc.shape) == 1 and loc.shape[0] == 1): # if given as an index
@@ -421,6 +417,7 @@ def plot_perspective_gif(walls, vmaps, tempdir = "./temp/", locs = None, filenam
     return
 
 
+#%% code for analysis results
 
 def plot_prediction_result(prediction_result, neural_times, loc_times, error = None, figsize = (3.0,2.5), labelpad = None, labels = None, filename = None, show = False, ymax = None, baseline = None, ts_train = None, legend = False, xlabel = None, cols = None, xticks = None, yticks = None):
     """

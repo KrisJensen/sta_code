@@ -55,7 +55,6 @@ def process_subspace_trial_data(trial_data, slot_type = "relative", tmax_offset 
     # for now don't use neurons/positions at t=0 since that is at the boundary of planning and execution and might be slightly different
     if slot_type == "planning":
         # pairs of timepoints corresponding to each subspace. Here we want to decode location at time 't' from any t' in planning
-        #subspace_pairs = [[(t0, t1) for t0 in range(max(-2, tmin), 0)] for t1 in range(1, tmax+1)]
         subspace_pairs = [[(t0, t1) for t0 in range(max(-2, tmin), 0)] for t1 in range(0, tmax+1)]
     elif slot_type == "relative":
         # here we want to decode location at time t+dt for any t

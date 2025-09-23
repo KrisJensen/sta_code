@@ -1,5 +1,4 @@
-# in this script, we look at the effective connectivity of a network trained on many different mazes.
-# we are interested in whether the effective connectivity matches the maze it is currently in.
+"""Code for analysing the behaviour, representations, and connectivity of RNNs trained across changing mazes"""
 
 #%% first load some libraries
 import numpy as np
@@ -9,7 +8,6 @@ import time
 import torch
 import copy
 import sys
-pysta.reload()
 from pysta import basedir
 
 #%% collect data for many different wall configurations

@@ -1,9 +1,9 @@
+"""Code for testing that all handcrafted agents run and behave as expected"""
 
 #%%
 
 import pysta
 import torch
-pysta.reload()
 from pysta import basedir
 
 def test_RNN_agent_runs():
