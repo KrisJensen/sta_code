@@ -523,7 +523,7 @@ class SpaceTimeAttractor(BaseAgent):
     classname = "SpaceTimeAttractor"
     label = "sta"
     
-    def __init__(self, env, beta = 9.0, tau = 50, iters_per_action = 400, shift_time = 2.0, rec_noise = 1e-1, adj_noise = 1e-2, **kwargs):
+    def __init__(self, env, beta = 9.0, tau = 50, iters_per_action = 400, shift_time = 2.0, rec_noise = 1e-1, adj_noise = 1e-2, adj_bias = -5e-3, **kwargs):
         """
         Spacetime attractor that optimises a reward function
 
@@ -550,6 +550,7 @@ class SpaceTimeAttractor(BaseAgent):
         self.num_locs = env.num_locs
         self.batch = env.batch
         self.adj_noise = adj_noise
+        self.adj_bias = adj_bias
         self.shift_time = shift_time
         
         self.Nrec = self.num_modules * self.num_locs # total number of neurons across modules
@@ -575,7 +576,7 @@ class SpaceTimeAttractor(BaseAgent):
 
         A = self.env.adjacency.clone() # adjacency matrix of the environment
         adj_noise = self.adj_noise # how much noise will we add
-        bias = -5e-3 # bias added to the noise
+        bias = self.adj_bias # bias added to the noise
         
         # instantiate recurrent weight matrices
         self.Wrec_fwd, self.Wrec_bwd = [torch.zeros(self.batch, self.Nrec, self.Nrec) for _ in range(2)]
@@ -688,7 +689,7 @@ class SpaceTimeAttractor(BaseAgent):
 
     def plot_representation(self, filename = None, trial_num = 0, **kwargs):
         """
-        Generate a summaruy plot for a trial
+        Generate a summary plot for a trial
 
         Parameters
         ----------
