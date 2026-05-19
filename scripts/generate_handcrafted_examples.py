@@ -1,6 +1,6 @@
- """Here we generate some example value functions and representations for different handcrafted agents"""
+"""Here we generate some example value functions and representations for different handcrafted agents"""
  
- #%% load libraries
+#%% load libraries
  
 import pysta
 import torch
@@ -10,7 +10,6 @@ import pickle
 from pysta import basedir
 
 save = True
-
 #%% examples of each task
 
 example_task_data = {}
@@ -147,6 +146,9 @@ for ienv, env in enumerate(envs):
             pysta.plot_utils.plot_flat_frame(filename = None, **kwargs, cmap = "YlOrRd", vmin = None, vmax = None, show = True)
             
         example_rep_data[env_labels[ienv]][agent.label] = kwargs
+
+
+
 
 if save:
     pickle.dump(example_rep_data, open(f"{basedir}/data/examples/example_rep_data.pickle", "wb"))

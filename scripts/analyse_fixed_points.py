@@ -64,6 +64,7 @@ def compare_paths(sta, env, expected_paths, niters, initial_path = [], initial_p
 
 aspect, figsize = (1,1,5), (8,5)
 iters_per_action = 1201
+rec_noise = 2e0
 # initialize an environment with a stationary goal (change 'dynamic_rew' to 'True' for a moving goal)
 print("\nInstantiating environment")
 env = pysta.envs.MazeEnv(rew_landscape = False, changing_trial_rew = False, batch_size = 1, dynamic_rew = False, max_steps = 4, side_length = 3)
@@ -75,7 +76,7 @@ loc, goal = 0, 8
 walls = torch.zeros(env.batch, env.num_locs, 4)
 
 update_env(env, walls, goal, loc, scale_rew = 1.0)
-sta = pysta.agents.SpaceTimeAttractor(env,  beta = 9.0, tau = 50, iters_per_action = iters_per_action, shift_time = 2.0, rec_noise = 1e-1, adj_noise = 0.0, adj_bias = 0.0)
+sta = pysta.agents.SpaceTimeAttractor(env,  iters_per_action = iters_per_action, rec_noise = rec_noise, adj_noise = 0.0, adj_bias = 0.0)
 sta.store_all_activity = True
 update_env(env, walls, goal, loc, scale_rew = 1.0)
 env.plot(show = True)
@@ -94,11 +95,10 @@ for ind in [0, 50, 200, 500]:
 loc, goal = 0, 8
 barriers = [(1,2),(3,2),(4,0)]
 walls = walls_from_barriers(barriers)
-#expected_paths = [[0,1,2,5,8], [0,3,6,7,8]]
 expected_paths = [[0,1,4,5,8], [0,3,6,7,8]]
 
 update_env(env, walls, goal, loc, scale_rew = 1.0)
-sta = pysta.agents.SpaceTimeAttractor(env,  beta = 9.0, tau = 50, iters_per_action = iters_per_action, shift_time = 2.0, rec_noise = 1e-0, adj_noise = 0.0, adj_bias = 0.0)
+sta = pysta.agents.SpaceTimeAttractor(env,  iters_per_action = iters_per_action, rec_noise = rec_noise, adj_noise = 0.0, adj_bias = 0.0)
 update_env(env, walls, goal, loc, scale_rew = 1.0)
 env.plot(show = True)
 
@@ -142,7 +142,7 @@ loc, barriers, goal = 0, [(1,0),(3,2),(4,0)], 5
 walls = walls_from_barriers(barriers)
 expected_paths = [[0,1,2,5], [0,3,6,7,8,5]]
 update_env(env, walls, goal, loc, scale_rew = 1.0)
-sta = pysta.agents.SpaceTimeAttractor(env,  beta = 9.0, tau = 50, iters_per_action = iters_per_action, shift_time = 2.0, rec_noise = 1e-0, adj_noise = 0.0, adj_bias = 0.0)
+sta = pysta.agents.SpaceTimeAttractor(env,  iters_per_action = iters_per_action, rec_noise = rec_noise, adj_noise = 0.0, adj_bias = 0.0)
 update_env(env, walls, goal, loc, scale_rew = 1.0)
 env.plot(show = True)
 
@@ -152,7 +152,7 @@ fits1, examples1 = compare_paths(sta, env, expected_paths, 1000, initial_path = 
 fits2, examples2 = compare_paths(sta, env, expected_paths, 1000, initial_path = initial_path, initial_path_inds = initial_path_inds)
 
 
-sta = pysta.agents.SpaceTimeAttractor(env,  beta = 9.0, tau = 50, iters_per_action = iters_per_action, shift_time = 2.0, rec_noise = 1e-0, adj_noise = 0.0, adj_bias = 0.0)
+sta = pysta.agents.SpaceTimeAttractor(env,  iters_per_action = iters_per_action, rec_noise = rec_noise, adj_noise = 0.0, adj_bias = 0.0)
 rnormal = sta.r[0].detach().numpy()
 set_initial_path(sta, initial_path, initial_path_inds)
 rdiff = sta.r[0].detach().numpy()

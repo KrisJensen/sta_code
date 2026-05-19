@@ -19,9 +19,10 @@ def reload():
     importlib.reload(pysta.plot_utils)
     importlib.reload(pysta.analysis_utils)
     importlib.reload(pysta.subspace_utils)
+    importlib.reload(pysta.mp_utils)
     
 
-def optimal_initial_action_freq(agent, reset_after = True, ignore_futile = True):
+def optimal_initial_action_freq(agent, reset_after = True, ignore_futile = True, emp_acts = None):
     """"
     Parameters:
     reset_after : bool
@@ -29,8 +30,9 @@ def optimal_initial_action_freq(agent, reset_after = True, ignore_futile = True)
     ignore_futile : bool
         If true, only average over trials where there is an optimal action
     """
-    agent.reset()
-    emp_acts = agent.step(agent.env.observation()) # which actions does the agent take?
+    if emp_acts is None:
+        agent.reset()
+        emp_acts = agent.step(agent.env.observation()) # which actions does the agent take?
     opt_acts = agent.env.optimal_actions() # what are the optimal actions?
     acts_are_opt = opt_acts[torch.arange(len(emp_acts)), emp_acts] # which actions were optimal?
     
@@ -40,8 +42,9 @@ def optimal_initial_action_freq(agent, reset_after = True, ignore_futile = True)
     else: # just avg over everything
         frac_opt = acts_are_opt.mean()
 
-    if reset_after:
+    if reset_after and (emp_acts is None):
         agent.reset()
+        
     return frac_opt
     
     

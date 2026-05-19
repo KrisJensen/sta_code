@@ -26,7 +26,7 @@ def compare_handcrafted_models(seed = 0, save = True):
 
     num_agents = 3
     nreps = 20
-    results = np.zeros((nreps, len(envs), num_agents+1))
+    results = np.zeros((nreps, len(envs), num_agents+2))
 
     for ienv, env in enumerate(envs):
         
@@ -54,7 +54,17 @@ def compare_handcrafted_models(seed = 0, save = True):
                 
             # random baseline is just the fraction of actions that are optimal
             opt_acts = env.optimal_actions()
-            results[irep, ienv, -1] = opt_acts[opt_acts.mean(-1) < 1.0, :].mean()
+            results[irep, ienv, -2] = opt_acts[opt_acts.mean(-1) < 1.0, :].mean()
+            
+            # greedy baseline selects adjacent state with highest reward
+            action_rews = np.zeros((kwargs["batch_size"], env.num_actions))
+            new_locs = env.neighbors[env.batch_inds, env.loc, :] # for each action, where do I end up
+            for a in range(env.num_actions): # for each action
+                new_locs_a = new_locs[:, a] # where would I end up
+                action_rews[:, a] = env.rews[:, 1, :][env.batch_inds, new_locs_a].detach().numpy() # what is the immediate reward?
+            greedy_as = np.array([np.random.choice(np.where(rew == rew.max())[0]) for rew in action_rews]) # randomly select one of the best actions
+            frac_opt = pysta.utils.optimal_initial_action_freq(agent, emp_acts = greedy_as) # what fraction is optimal?
+            results[irep, ienv, -1] = frac_opt.item()
 
             print(irep, results[irep, ienv, :])
             sys.stdout.flush()

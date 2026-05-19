@@ -8,5 +8,6 @@ from . import utils
 from . import analysis_utils
 from . import subspace_utils
 from . import argparser
+from . import mp_utils
 from .utils import reload
 from .utils import basedir

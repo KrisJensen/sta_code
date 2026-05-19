@@ -113,7 +113,7 @@ abs_start, abs_goal = [conc2abs[s] for s in [start, goal]]
 print(abs_dists[abs_start, abs_goal])
 
 iters_per_action = 1000
-abs_sta = pysta.agents.SpaceTimeAttractor(abs_env,  beta = 9.0, tau = 50, iters_per_action = iters_per_action)
+abs_sta = pysta.agents.SpaceTimeAttractor(abs_env, iters_per_action = iters_per_action)
 update_env(abs_env, abs_start, abs_goal)
 action = abs_sta.step(abs_env.observation())
 abs_r = abs_sta.r[0].numpy()
@@ -129,7 +129,7 @@ print("dist to next abs:", big_dists[start, big_goal].min())
 
 #%% run primitive STA
 
-big_sta = pysta.agents.SpaceTimeAttractor(big_env,  beta = 9.0, loc_strength = 20, tau = 50, iters_per_action = iters_per_action, **noise)
+big_sta = pysta.agents.SpaceTimeAttractor(big_env, iters_per_action = iters_per_action, **noise)
 update_env(big_env, start, big_goal)
 big_sta.step(big_env.observation())
 

@@ -23,12 +23,8 @@ for ibase, basename in enumerate(basenames):
         rnn, figdir, datadir = pysta.utils.load_model(basename+str(seed), create_sta = (baselabels[ibase] == "sta"), create_dp = False) # load the model
         trial_data = pickle.load(open(f"{datadir}trial_data.pickle", "rb")) # load the trial data
 
-        #data_name = basename.replace("/", "_") + str(seed)
-        #connectivity_data_p = pickle.load(open(f"{basedir}/data/rnn_analyses/{data_name}_planning_subspaces.pickle", "rb"))
-        #connectivity_data_e = pickle.load(open(f"{basedir}/data/rnn_analyses/{data_name}_connectivity_data.pickle", "rb"))
         connectivity_data_p = pickle.load(open(f"{datadir}planning_subspaces.pickle", "rb"))
         connectivity_data_e = pickle.load(open(f"{datadir}connectivity_data.pickle", "rb"))
-
 
         Csubs_p = np.concatenate([C for C in connectivity_data_p["Csubs"]], axis = 0)
         Csubs_e = np.concatenate([C for C in connectivity_data_e["Csubs"]], axis = 0)
@@ -48,15 +44,6 @@ for ibase, basename in enumerate(basenames):
             var_exp_p = proj_p.var(0)
             var_exp_e = proj_e.var(0)
             var_pca = pca.explained_variance_ratio_
-            
-            # plt.figure()
-            # plt.plot(var_pca)
-            # plt.plot(var_exp_p / base_var, ls = "--")
-            # plt.plot(var_exp_e / base_var, ls = "--")
-            # plt.axhline(1/r.shape[-1], color = np.zeros(3)+0.7)
-            # plt.xlim(0, 100)
-            # plt.ylim(0, var_pca[0])
-            # plt.show()
 
             print(ibase, seed, t, var_pca[:var_exp_p.size].sum(), var_exp_p.sum()/base_var, var_exp_e.sum()/base_var)
 
@@ -69,13 +56,3 @@ for ibase, basename in enumerate(basenames):
 
 pickle.dump([results, trial_data["step_nums"][0, :, 0]], open(f"{basedir}/data/rnn_analyses/subspace_variance_explained.pickle", "wb"))
 
-
-# %%
-
-# ncomp = 100
-# var_exp = np.zeros(ncomp)
-# for i in range(ncomp):
-#     rp = r - proj[:, i, None] * C[None, i, :]
-#     var_exp[i] = base_var - rp.var(0).sum()
-#     if i % 25 == 0:
-#         print(i, var_exp[i])

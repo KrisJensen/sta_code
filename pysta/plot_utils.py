@@ -146,6 +146,8 @@ def plot_flat_frame(walls, figsize = (1.5,1.5), filename = None, cheese_size = 3
     if (filename is not None) or show:
         plt.close()
 
+    return ax
+
 
 def plot_maze_scaffold(adjacency, ax = None, zloc = None, cols = None, maze_col = None, s = 750, lw = 8, z = None, vmap = None, cmap = "YlOrRd", edgecols = None):
     """function for plotting a single maze"""
@@ -507,7 +509,7 @@ def plot_slot_connectivity(W, num_locs, vmin = 0.01, vmax = 0.995, filename = No
         number of locations in the environment
     """
     plt.figure(figsize = figsize)
-    plt.imshow(W, cmap = "coolwarm", vmin = np.quantile(W, vmin), vmax = np.quantile(W, vmax), interpolation = 'none')
+    plt.imshow(W, cmap = "coolwarm", vmin = np.nanquantile(W, vmin), vmax = np.nanquantile(W, vmax), interpolation = 'none')
     nslots_y, nslots_x = [int(shape / num_locs) for shape in W.shape]
     for i in range(nslots_y-1):
         plt.axhline(num_locs*(i+1)-0.5, color = "k")

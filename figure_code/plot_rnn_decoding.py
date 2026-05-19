@@ -62,7 +62,7 @@ for imodel, model in enumerate(models):
                                             error = std_nongen_scores[plot_inds, :], show = False, ts_train = None, xticks = range(6), yticks = [0, 1], labelpad = -5, labels = labels)
     
     if model in ["DP", "egocentric", "relrew"]:
-        xticks, xlabel = mean_loc.astype(int), "time in future"
+        xticks, xlabel = mean_loc.astype(int), "time in trial"
     else:
         xticks, xlabel = [], None
         
@@ -182,6 +182,10 @@ for imodel, model in enumerate(models):
     
     # plot the result
     ts_train = (neural_time, loc_time)
+    if model in ["DP", "egocentric", "relrew"]:
+        xticks, xlabel = range(1,6), "time in trial"
+    else:
+        xticks, xlabel = [], ""
     pysta.plot_utils.plot_prediction_result(mean_scores[plot_inds, :], mean_neural[plot_inds], mean_loc, xticks = xticks, xlabel = xlabel, cols = sequence_colors, figsize = figsize, yticks = [0, 1],
                                             ymax = 1.07, error = std_scores[plot_inds, :], ts_train = ts_train, show = False, labelpad = -5, filename = None)
         

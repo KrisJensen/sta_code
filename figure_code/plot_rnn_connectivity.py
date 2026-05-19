@@ -352,19 +352,24 @@ data = all_overlaps.mean((-1, -2)).T
 xs, ms, ss = np.arange(data.shape[1]), np.mean(data, axis = 0), np.std(data, axis = 0)
 jitters = np.random.normal(0, 0.1, len(data)) # jitter for plotting
 
-plt.figure(figsize = (1.5,1.8))
+for i in range(2):
 
-plt.bar(xs, ms, yerr = ss, capsize = 3, error_kw={'elinewidth': 2, "markeredgewidth": 2})
-for idata, datapoints in enumerate(data.T):
-    plt.scatter(jitters+xs[idata], datapoints, marker = ".", color = "k", alpha = 0.5, linewidth = 0.0, s = 80)
-    
-plt.ylabel("overlap")
-plt.ylim(0, 1)
-plt.xticks(xs, ["WM", "continual"])#, rotation = 45, ha = "right")
-plt.gca().spines[['right', 'top']].set_visible(False)
-plt.savefig(f"{basedir}/figures/rnn_connectivity/subspace_overlap{ext}", bbox_inches = "tight", transparent = True)
-plt.show()
-plt.close()
+    plt.figure(figsize = (0.95,1.85))
+
+    plt.bar(xs[i:i+1], ms[i:i+1], yerr = ss[i:i+1], capsize = 3, error_kw={'elinewidth': 2, "markeredgewidth": 2})
+    for idata, datapoints in enumerate(data.T[i:i+1]):
+        plt.scatter(jitters+xs[i], datapoints, marker = ".", color = "k", alpha = 0.5, linewidth = 0.0, s = 80)
+        
+    plt.ylabel("plannings vs. execution\nsubspace overlap")
+    plt.ylim(0, 1)
+    #plt.xticks(xs, ["WM", "continual"])#, rotation = 45, ha = "right")
+    plt.xlim(i-0.55, i+0.55)
+    plt.xticks([])
+    plt.yticks([0, 0.5, 1.0])
+    plt.gca().spines[['right', 'top']].set_visible(False)
+    plt.savefig(f"{basedir}/figures/rnn_connectivity/subspace_overlap{i}{ext}", bbox_inches = "tight", transparent = True)
+    plt.show()
+    plt.close()
 
 #%%
 

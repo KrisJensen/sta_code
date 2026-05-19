@@ -523,7 +523,7 @@ class SpaceTimeAttractor(BaseAgent):
     classname = "SpaceTimeAttractor"
     label = "sta"
     
-    def __init__(self, env, beta = 9.0, tau = 50, iters_per_action = 400, shift_time = 2.0, rec_noise = 1e-1, adj_noise = 1e-2, adj_bias = -5e-3, **kwargs):
+    def __init__(self, env, beta = 9.0, tau = 50, iters_per_action = 400, loc_strength = 20.0, shift_time = 2.0, rec_noise = 1e-1, adj_noise = 1e-2, adj_bias = -5e-3, clip_minval = -100, **kwargs):
         """
         Spacetime attractor that optimises a reward function
 
@@ -552,10 +552,17 @@ class SpaceTimeAttractor(BaseAgent):
         self.adj_noise = adj_noise
         self.adj_bias = adj_bias
         self.shift_time = shift_time
+        self.clip_minval = clip_minval
+        self.loc_strength = loc_strength
         
         self.Nrec = self.num_modules * self.num_locs # total number of neurons across modules
         self.beta = beta # reward function temperature parameters
         self.exact = False # perform exact inference
+        
+        # initial bias vectors that reflect our boundary conditions
+        self.b_fwd, self.b_bwd = [torch.zeros(1, self.Nrec, 1) for _ in range(2)]
+        self.b_fwd[0, :self.num_locs, 0] = 1.
+        self.b_bwd[0, -self.num_locs:, 0] = 1.
         
         # initialise BaseAgent
         kwargs["tau"] = tau
@@ -624,7 +631,7 @@ class SpaceTimeAttractor(BaseAgent):
         obs_mod = observation.reshape(self.batch, -1, self.num_locs) # batch by input type by location within module
         rew_inds = torch.cat([torch.arange(1), torch.arange(2, obs_mod.shape[1]-2)]) # indicies of the inputs corresponding to current location and future reward
         logrews = obs_mod[:, rew_inds, :] # reward function (batch, modules, locs)
-        logrews[:, 0, :] *= 20.0 # strong signal to start at current location
+        logrews[:, 0, :] *= self.loc_strength # strong signal to start at current location
         logrews *= self.beta # multiply by temperature parameter
         logrews -= logrews.logsumexp(axis = -1, keepdims = True) # turn into a distribution over locations and add final vector dimension 
         if flat: # flatten back into a vector instead of a matrix
@@ -635,7 +642,7 @@ class SpaceTimeAttractor(BaseAgent):
 
     def step(self, observation):
 
-        clip_minval = torch.tensor(-100) # threshold value for inhbition
+        clip_minval = torch.tensor(self.clip_minval) # threshold value for inhbition
 
         # first extract reward function from observation
         logrews = self.obs_to_rew_func(observation.clone(), flat = True) # flatten for each trial (batch, modules*locs)
@@ -647,7 +654,7 @@ class SpaceTimeAttractor(BaseAgent):
 
             rs = self.r.reshape(self.batch, -1, 1) # firing rate but add vector dimension
             # compute change in activity
-            dzdt = (self.Win @ logrews + torch.maximum(clip_minval.exp(), self.Wrec_fwd @ rs).log() + torch.maximum(clip_minval.exp(), self.Wrec_bwd @ rs).log())
+            dzdt = (self.Win @ logrews + torch.maximum(clip_minval.exp(), self.Wrec_fwd @ rs + self.b_fwd).log() + torch.maximum(clip_minval.exp(), self.Wrec_bwd @ rs + self.b_bwd).log())
 
             # optionally add a 'shift component' to the dynamics for a period after each action
             if (iter_ < self.tau*self.shift_time) and (self.env.step_num > 0):

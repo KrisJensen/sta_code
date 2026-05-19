@@ -29,10 +29,10 @@ data = pickle.load(open(f"{basedir}/data/comparisons/handcrafted_agent_performan
 env_labels = ["static", "changing", "moving", "landscape"]
 env_titles = ["constant goal", "changing goal", "moving goal", "reward landscape"]
 
-agent_labels = ["TD", "SR", "STA"]
-agent_colors = [plt.get_cmap("tab10")(i) for i in [1,2,0]]
+agent_labels = ["TD", "SR", "STA", "Grdy"]
+agent_colors = [plt.get_cmap("tab10")(i) for i in [1,2,0]]+[np.zeros(3)+0.6]
 
-perfs = data["perfs"]
+perfs = data["perfs"][..., np.array([0,1,2,4,3])]
 
 for ienv, env in enumerate(env_labels):
 

@@ -35,9 +35,7 @@ def eval_representation(r, dists, goal, length):
         new_val = r[l, new_state]
         if new_val < 0.3 or dists[new_state, state] != 1:
             good = 0
-        #print(state, new_state, new_val, good, goal)
         state = new_state
-    #assert state == goal
     
     return good
         
@@ -53,7 +51,6 @@ for inoise, noise in enumerate(noises):
         while dists.max() < lengths[-1]:
             env = pysta.envs.MazeEnv(rew_landscape = False, changing_trial_rew = False, batch_size = len(lengths), dynamic_rew = False, max_steps = lengths[-1]+1, side_length = 6)
             dists = compute_shortest_dists(env.adjacency[0])
-            #print(dists.max())
         
         goal = np.random.choice(np.where(dists >= lengths[-1])[0])
         
@@ -63,7 +60,7 @@ for inoise, noise in enumerate(noises):
             env.rews[env.batch_inds, t, env.goal[:, t]] = env.rew_goal # positive reward at the goal location
         env.compute_value_function()
 
-        sta = pysta.agents.SpaceTimeAttractor(env, tau = 50, iters_per_action = 1501, shift_time = 2.0, **noise)
+        sta = pysta.agents.SpaceTimeAttractor(env, tau = 50, iters_per_action = 1501, **noise)
 
 
         locs = []
@@ -75,8 +72,6 @@ for inoise, noise in enumerate(noises):
 
         for ind in range(len(lengths)):
             r = sta.r[ind].detach().numpy()
-            #plot_kwargs = {"walls": env.walls[0], "vmap": r, "loc": env.loc[ind], "goal": env.goal[0], "aspect": (1,1,6)}
-            #pysta.plot_utils.plot_perspective_attractor(**plot_kwargs, show = True, vmin = -0.1, vmax = 1.2, figsize = (8,5))
             goods[inoise, iter_, ind] = eval_representation(r, dists, goal, lengths[ind])
             print(lengths[ind], goods[inoise, iter_, ind])
 
@@ -114,7 +109,7 @@ for iter_ in range(iters):
 
     env.compute_value_function()
 
-    sta = pysta.agents.SpaceTimeAttractor(env, tau = 35, iters_per_action = 15001, shift_time = 2.0, clip_minval = -1.0e2, **noise)
+    sta = pysta.agents.SpaceTimeAttractor(env, tau = 35, iters_per_action = 15001, **noise)
 
     locs = []
     for length in lengths:
@@ -125,8 +120,6 @@ for iter_ in range(iters):
 
     for ind in range(len(lengths)):
         r = sta.r[ind].detach().numpy()
-        # plot_kwargs = {"walls": env.walls[0], "vmap": r, "loc": None, "goal": None, "aspect": (1,1,21)}
-        # pysta.plot_utils.plot_perspective_attractor(**plot_kwargs, show = True, vmin = -0.1, vmax = 1.2, figsize = (35,10), filename = f"{basedir}/figures/temp/long{ind}.pdf")
         good = eval_representation(r, dists, goal, lengths[ind])
         long_goods[iter_, ind] = good
         print(lengths[ind], good)
