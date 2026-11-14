@@ -9,9 +9,10 @@ import copy
 import torch
 import os
 import matplotlib as mpl
+from scipy.stats import pearsonr, ttest_1samp
 from pysta import basedir
 ext = ".pdf"
-basefigdir = f"{basedir}/figures/rnn_connectivity/"
+basefigdir = f"{basedir}/figures/temp/rnn_connectivity/"
 np.random.seed(0)
 
 #%% set font with arial .ttf file
@@ -239,6 +240,33 @@ for imodel, model in enumerate(models):
         if (model == "WM") and (subspace_type == "planning"):
             print("Within maze correlation:", np.mean(same), np.std(same))
             print("Across maze correlation:", np.mean(diff), np.std(diff))
+
+            
+        #%% compute similarity to adjacency vs transition matrices
+        for sign_ind in [0, 1]:
+            same, same2, same3, diff, diff2, diff3 = [], [], [], [], [], []
+            for i1 in range(len(all_Wavgs_abs)):
+                W1 = all_Wavgs[i1][1][sign_ind]
+                i2 = i1
+                
+                A2 = all_Arefs[i2][1]
+                T2 = (A2 / A2.sum(0, keepdims = True))**(0.5)
+                same.append(pearsonr(W1.flatten(), A2.flatten())[0])
+                same2.append(pearsonr(W1.flatten(), T2.flatten())[0])
+                same3.append(pearsonr(W1.flatten(), T2.T.flatten())[0])
+                        
+            if (model == "WM") and (subspace_type == "planning"):
+                print("\nAdj maze correlation:", np.mean(same), np.std(same))
+                print("T maze correlation:", np.mean(same2), np.std(same2))
+                print("T.T maze correlation:", np.mean(same3), np.std(same3))
+                
+                diff1, diff2 = np.array(same) - np.array(same2), np.array(same) - np.array(same3)
+                
+                for diff in diff1, diff2:
+                    print(np.mean(diff), 2*np.std(diff) / np.sqrt(len(diff)))
+                    print(ttest_1samp(diff, 0, alternative = "greater"))
+                    print(np.mean(diff > 0))
+
 
         #%% plot the average weight matrix for different distances
 

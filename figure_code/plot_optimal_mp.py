@@ -23,15 +23,36 @@ figsize = (1.85, 1.6)
 
 #%% load all data
 
-seeds = [31,32,33,34,35]
-results = [pickle.load(open(f"{pysta.basedir}/data/optimal_mp/beta7.0_result_seed{seed}.p", "rb")) for seed in seeds]
+beta = 5.5
+
+# seeds = [31,32,33,34,35]
+# results = [pickle.load(open(f"{pysta.basedir}/data/optimal_mp/beta7.0_result_seed{seed}.p", "rb")) for seed in seeds]
+
+# seeds = [31,32,33,34,35]
+# results = [pickle.load(open(f"{pysta.basedir}/data/optimal_mp/beta5.0_iter15000_result_seed{seed}.p", "rb")) for seed in seeds]
 
 seeds = [31,32,33,34,35]
-results = [pickle.load(open(f"{pysta.basedir}/data/optimal_mp/beta7.5_iter7000_result_seed{seed}.p", "rb")) for seed in seeds]
+results = [pickle.load(open(f"{pysta.basedir}/data/optimal_mp/beta{beta}_result_seed{seed}.p", "rb")) for seed in seeds]
+
+
+# seeds = [31,32,33,34,35]
+# results = [pickle.load(open(f"{pysta.basedir}/data/optimal_mp/beta6.0_result_seed{seed}.p", "rb")) for seed in seeds]
 
 
 # seeds = [31]
 # results = [pickle.load(open(f"{pysta.basedir}/data/optimal_mp/fixed_beta7.0_iter2000_result_seed{seed}.p", "rb")) for seed in seeds]
+
+
+#% plot full connectivity matrix
+ex = 0
+G_fwd, G_bwd, T = results[ex]["G_fwd"], results[ex]["G_bwd"], results[ex]["T"]
+num_locs, num_modules, Nrec = [results[ex][key] for key in ["num_locs", "num_modules", "Nrec"]]
+
+masks = torch.sum(torch.stack(pysta.mp_utils.get_mask_mats(Nrec, num_locs, num_modules)), axis = 0)
+masks[masks == 0] = np.nan
+print(results[0]["beta"])
+pysta.plot_utils.plot_slot_connectivity(G_fwd+G_bwd+masks, num_locs, show = True, figsize = (3.5,3.5), vmin = 0.0, vmax = 1.0, transparent = True, yticks = [str(i) for i in range(0, num_modules)], xticks = [str(i) for i in range(0, num_modules)], xtickrot = 0, filename = f"{basefigdir}/example_weights{ext}", xlabel = None, ylabel = None)
+
 
 
 #%% plot learning curves
@@ -54,16 +75,6 @@ plt.savefig(f"{basefigdir}training_curves{ext}", bbox_inches = "tight", transpar
 plt.show()
 plt.close()
 
-
-#%% plot full connectivity matrix
-ex = 0
-G_fwd, G_bwd, T = results[ex]["G_fwd"], results[ex]["G_bwd"], results[ex]["T"]
-num_locs, num_modules, Nrec = [results[ex][key] for key in ["num_locs", "num_modules", "Nrec"]]
-
-masks = torch.sum(torch.stack(pysta.mp_utils.get_mask_mats(Nrec, num_locs, num_modules)), axis = 0)
-masks[masks == 0] = np.nan
-
-pysta.plot_utils.plot_slot_connectivity(G_fwd+G_bwd+masks, num_locs, show = True, figsize = (3.5,3.5), vmin = 0.0, vmax = 1.0, transparent = True, yticks = [str(i) for i in range(0, num_modules)], xticks = [str(i) for i in range(0, num_modules)], xtickrot = 0, filename = f"{basefigdir}/example_weights{ext}", xlabel = None, ylabel = None)
 
 
 #%% visualise an example path
@@ -238,7 +249,9 @@ plt.close()
 
 result_clamp = pickle.load(open(f"{pysta.basedir}/data/optimal_mp/clamp_beta7.0_iter20000_result_seed31.p", "rb"))
 plt.figure(figsize = (2.5, 1.8))
-plt.plot(gaussian_filter1d(result_clamp["KLs"], sigma=2))
+plt.plot(np.arange(401)*200*50, gaussian_filter1d(result_clamp["KLs"], sigma=5))
+plt.xlabel("epoch")
+plt.ylabel(r'$KL[p_{t=3}||q_{t=3}]$')
 plt.show()
 
 G = (result_clamp["G_fwd"] + result_clamp["G_bwd"])[3*16:4*16, :]

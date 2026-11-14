@@ -15,11 +15,11 @@ print(submit_slurm(command_compare, f"analyse_handcrafted_perf", time = "2:00:00
 
 #%% run optimal mp analyses
 
-seeds = [31,32,33,34,35]
-beta = "4"
+seeds = [31,32,34,35]
+beta = "5.5"
 base_command = f"python {pysta.basedir}/scripts/optimal_mp.py beta-{beta} action_max-0"
 
 for seed in seeds:
     command = f"{base_command} seed-{seed}"
-    print(submit_slurm(command, f"train_optimal_mp_{beta}_{seed}", time="24:00:00", partition = "gpu"))
+    print(submit_slurm(command, f"train_optimal_mp_{beta}_{seed}", time="24:00:00", partition = "cpu"))
 
